@@ -67,7 +67,7 @@
             cell.innerHTML = movie.source.name;
             var cell = row.insertCell();
             cell.className = "normal";
-            cell.innerHTML = movie.title;
+            cell.innerHTML = "<a href=" + movie.officialsite + ">" + movie.title + "</a>";
 
             var cell = row.insertCell();
             cell.className = "normal";
