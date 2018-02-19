@@ -65,7 +65,7 @@ public class UpdaterMoviesAnywhere {
                     movie_source.setOfficialsite(
                             "https://moviesanywhere.com" + movie.get("primaryAction").get("target").asText());
                 if ((movie.get("image") != null) && (movie.get("image").get("url") != null))
-                    movie_source.setPoster("https:" + movie.get("image").get("url").asText());
+                    movie_source.setPoster("https:" + movie.get("image").get("url").asText() + ".jpg?h=600&resize=fit&w=400");
 
                 movieController.newMovie_source(movie_source);
             }
