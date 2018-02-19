@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="common.css" type="text/css" />
+  <script src="jquery-3.1.0.js" type="text/javascript"></script>
+  <title>电影详情</title>
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="filelist"></div>
+  <div id="close_button" onclick="hide_download_box()"></div>
+  <div class="title">电影详情</div>
+  <table class="normal">
+    <tr class="noborder">
+      <td class="topic" colspan="2">基本信息</td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">英文名</th>
+      <td class="noborder" id="title_en"></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">中文名</th>
+      <td class="noborder" id="title_cn"></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">首映日期</th>
+      <td class="noborder" id="releasedate"></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">品牌</th>
+      <td class="noborder" id="company"></td>
+    </tr>
+
+    <tr class="noborder">
+      <td class="topic" colspan="2">详细内容</td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder"><img src="img/movie.png" alt="Movie" height="80px" /></th>
+      <td class="noborder" id="poster"></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder"><img src="img/cd.png" alt="CD" height="80px" /></th>
+      <td class="noborder" id="cover"></td>
+    </tr>
+    <tr class="noborder">
+      <td class="topic" colspan="2">IMDB信息</td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder"><img src="img/imdb.png" alt="IMDB" height="80px" /></th>
+      <td class="noborder">
+        <div style="float: left; display: table-cell;">
+          <table class="noborder">
+            <tr class="noborder"><th class="noborder" align="left">Title</th><td class="noborder" id="imdb_title"></td></tr>
+            <tr class="noborder"><th class="noborder" align="left">Released</th><td class="noborder" id="imdb_releasedate"></td></tr>
+          </table>
+        </div>
+      </td>
+    </tr>
+  </table>
+  <script type="text/javascript" charset="utf-8">
+    function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    }
+
+    function transformToAssocArray(prmstr) {
+      var params = {};
+      var prmarr = prmstr.split("&");
+      for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+      }
+      return params;
+    }
+
+    $(function() {
+      var params = getSearchParameters();
+      var idmovie = params["idmovie"] ? params["idmovie"] : "1";
+      var dataUrl = params["idmovie"] ? "movie/" + idmovie : "movie/1";
+
+      $.get(dataUrl, function(data, status) {
+        var td_title_en = document.getElementById("title_en");
+        td_title_en.textContent = data.title;
+
+        var td_title_cn = document.getElementById("title_cn");
+        var akatitles = data.akatitles;
+        akatitles.forEach(function(akatitle) {
+          if (akatitle.language == "Chinese")
+            td_title_cn.textContent = akatitle.title;
+        });
+
+        var td_releasedate = document.getElementById("releasedate");
+        td_releasedate.textContent = data.releasedate;
+
+        var td_company = document.getElementById("company");
+        var companies = data.movie_companies;
+        companies.forEach(function(company) {
+            var div_company = document.createElement("div");
+            div_company.textContent = company.company.name + "\u00a0";
+            if (company.preferred == 1) {
+              div_company.style = "font-weight: bold; display: inline-block;";
+            } else {
+              div_company.style = "display: inline-block;";
+            }
+            td_company.appendChild(div_company);
+        });
+
+        var td_poster = document.getElementById("poster");
+        var posters = data.posters;
+        posters.forEach(function(poster) {
+            var div_poster = document.createElement("div");
+            div_poster.style="display: inline; padding: 5px;";
+            var img = document.createElement("img");
+            img.style = "height: 200px;";
+            img.src = "poster/" + poster.idposter + "/" + poster.imagename;
+            div_poster.appendChild(img);
+            td_poster.appendChild(div_poster);
+        });
+
+        var td_imdb_title = document.getElementById("imdb_title");
+        td_imdb_title.textContent = data.imdb.title;
+        var td_imdb_releasedate = document.getElementById("imdb_releasedate");
+        td_imdb_releasedate.textContent = data.imdb.releasedate;
+      });
+    });
+  </script>
+</body>
+</html>

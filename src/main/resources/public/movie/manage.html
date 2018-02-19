@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="common.css" type="text/css" />
+  <script src="jquery-3.1.0.js" type="text/javascript"></script>
+  <title>电影年表</title>
+</head>
+<body>
+  <div class="title" id="title"></div>
+  <table class="noborder">
+    <tr class="noborder">
+      <th class="noborder">品牌：
+        <select id="selectcompany" onchange="gotocompany();">
+          <option value="" selected="selected">全部品牌</option>
+        </select>
+      </th>
+      <th class="noborder" id="counter"></th>
+      <th class="noborder" id="audio"></th>
+      <th class="noborder" id="video"></th>
+      <th class="noborder"><a href="merge.html">新进电影</a></th>
+      <th class="noborder"><a href="upload.html">人工上传</a></th>
+    </tr>
+  </table>
+  <table class="normal">
+    <thead>
+      <tr class="normal">
+        <th class="normal"><a href="#" onclick="sortby(0);">序号</a></th>
+        <th class="normal"><a href="#" onclick="sortby(1);">英文名</a></th>
+        <th class="normal"><a href="#" onclick="sortby(2);">中文名</a></th>
+        <th class="normal"><a href="#" onclick="sortby(3);">IMDB编号</a></th>
+        <th class="normal"><a href="#" onclick="sortby(4);">首映日期</a></th>
+        <th class="normal">操作</th>
+      </tr>
+    </thead>
+    <tbody id="movielist">
+    </tbody>
+  </table>
+
+  <script type="text/javascript" charset="utf-8">
+    var sort = "4-a";
+    var movielist, index;
+
+    function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    }
+
+    function transformToAssocArray(prmstr) {
+      var params = {};
+      var prmarr = prmstr.split("&");
+      for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+      }
+      return params;
+    }
+
+    function gotocompany() {
+      var company = document.getElementById('selectcompany').value;
+      if (company != "")
+        window.location.href = "manage.html?company=" + company;
+      else
+        window.location.href = "manage.html";
+    };
+
+    function filltable() {
+      while (document.getElementById("movielist").rows.length > 0)
+        document.getElementById("movielist").deleteRow(0);
+
+      index.forEach(function (i) {
+        movie = movielist[i];
+        var tr = document.getElementById("movielist").insertRow();
+        tr.className = "normal";
+        var td1 = document.createElement("td");
+        td1.className = "normal";
+        td1.textContent = movie.idmovie;
+        var td2 = document.createElement("td");
+        td2.className = "normal";
+        td2.textContent = movie.title_en;
+        var td3 = document.createElement("td");
+        td3.className = "normal";
+        td3.textContent = movie.title_cn;
+        var td4 = document.createElement("td");
+        td4.className = "normal";
+        td4.textContent = movie.imdb;
+        var td5 = document.createElement("td");
+        td5.className = "normal";
+        td5.textContent = movie.releasedate;
+        var td6 = document.createElement("td");
+        td6.className = "normal";
+        var img1 = document.createElement("img");
+        if (movie.audio == 1)
+          img1.src = "img/audioy.png";
+        else
+          img1.src = "img/audion.png";
+        img1.height = 16;
+        var img2 = document.createElement("img");
+        if (movie.video == 1)
+          img2.src = "img/videoy.png";
+        else
+          img2.src = "img/videon.png";
+        img2.height = 16;
+        var img3 = document.createElement("img");
+        img3.src = "img/edit.png";
+        img3.height = 16;
+        var link = "edit.html?idmovie=" + movie.idmovie;
+        img3.onclick = function () {
+          window.location.href = link;
+        };
+        td6.appendChild(img1);
+        td6.appendChild(img2);
+        td6.appendChild(img3);
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tr.appendChild(td3);
+        tr.appendChild(td4);
+        tr.appendChild(td5);
+        tr.appendChild(td6);
+      });
+    }
+
+    function sortby(key) {
+      if (sort.charAt(0) == key) {
+        if (sort.endsWith("a"))
+          sort = key + "-d"
+        else 
+          sort = key + "-a";
+      } else {
+        sort = key + "-a";
+      }
+
+      var x, y, o;
+      for (var i = 0; i < movielist.length - 1; i++)
+        for (var j = i + 1; j <= movielist.length - 1; j++) {
+          if (key == 0) {
+            x = movielist[index[i]].idmovie;
+            y = movielist[index[j]].idmovie;
+          }
+          if (key == 1) {
+            x = movielist[index[i]].title_en;
+            y = movielist[index[j]].title_en;
+          }
+          if (key == 2) {
+            x = movielist[index[i]].title_cn;
+            y = movielist[index[j]].title_cn;
+          }
+          if (key == 3) {
+            x = movielist[index[i]].imdb;
+            y = movielist[index[j]].imdb;
+          }
+          if (key == 4) {
+            x = movielist[index[i]].releasedate;
+            y = movielist[index[j]].releasedate;
+          }
+          if ((sort.endsWith("a") && (x > y))
+            || (sort.endsWith("d") && (x < y))
+            || (x && !y)) {
+            o = index[i];
+            index[i] = index[j];
+            index[j] = o;
+          }
+        }
+      filltable(movielist);
+    }
+
+    $(function() {
+      var params = getSearchParameters();
+      var company = params["company"] ? params["company"] : "Disney";
+      var dataUrl = params["company"] ? "movie/company/" + company : "movie/company/all";
+      var companyUrl = "company/list";
+      document.title = company + "电影年表";
+      document.getElementById("title").textContent = company + "电影年表";
+
+      $.get(companyUrl, function(data, status) {
+        var select_company = document.getElementById("selectcompany");
+        var opt_company = null;
+
+        data.forEach(function(company1) {
+          opt_company = document.createElement("option");
+          opt_company.value = company1.name;
+          opt_company.text = company1.name;
+          if (company1.name == params["company"])
+            opt_company.selected = true;
+          select_company.appendChild(opt_company);
+        });
+      });
+
+      $.get(dataUrl, function(movielistresult, status) {
+        movielist = movielistresult;
+        index = new Array(movielist.length);
+        var audio = 0, video = 0;
+        for (var i = 0; i < movielist.length; i++)
+        {
+          index[i] = i;
+          if (movielist[i].audio == 1)
+            audio++;
+          if (movielist[i].video == 1)
+            video++;
+        }
+        document.getElementById("counter").textContent = "总记录数： " + movielist.length;
+        document.getElementById("audio").textContent = "音频文件数： " + audio;
+        document.getElementById("video").textContent = "视频文件数： " + video;
+        filltable();
+      });
+    });
+  </script>
+</body>
+</html>

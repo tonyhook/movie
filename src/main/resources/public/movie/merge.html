@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="common.css" type="text/css" />
+  <script src="jquery-3.1.0.js" type="text/javascript"></script>
+  <title>同步影片合并</title>
+</head>
+<body>
+  <div class="title">电影详情</div>
+
+  <table class="normal" id="newmovielist">
+    <tr class="normal">
+      <th class="normal">影片来源</th>
+      <th class="normal">影片名称</th>
+      <th class="normal">类似影片</th>
+      <th class="normal">决策</th>
+    </tr>
+  </table>
+  <script type="text/javascript" charset="utf-8">
+    function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    }
+
+    function transformToAssocArray(prmstr) {
+      var params = {};
+      var prmarr = prmstr.split("&");
+      for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+      }
+      return params;
+    }
+
+    function change(select) {
+      var a = document.getElementById("same" + select.id.substring(6, select.id.length));
+      var link = "movie/merge/" + select.id.substring(6, select.id.length) + "/" + select.value;
+      a.href = link;
+    }
+
+    function removeRow(idmovie_source)
+    {
+      var row = document.getElementById("row" + idmovie_source);
+      var table = document.getElementById("newmovielist");
+      table.deleteRow(row.rowIndex);
+    }
+
+    $(function() {
+      var params = getSearchParameters();
+      var company = params["company"] ? params["company"] : "Disney";
+      var dataUrl = "movie/orphan";
+
+      $.get(dataUrl, function(newmovielist, status) {
+        var table = document.getElementById("newmovielist");
+
+        var i = 0;
+        var row = null;
+        newmovielist.forEach(function(movie) {
+          var findUrl = "movie/find/" + movie.title.replace("/", " ");
+          $.get(findUrl, function(similarmovielist, status) {
+            row = table.insertRow();
+            row.className = "normal";
+            row.id = "row" + movie.idmovie_source;
+            var cell = row.insertCell();
+            cell.className = "normal";
+            cell.innerHTML = movie.source.name;
+            var cell = row.insertCell();
+            cell.className = "normal";
+            cell.innerHTML = movie.title;
+
+            var cell = row.insertCell();
+            cell.className = "normal";
+            var select = document.createElement("select");
+            select.id = "select" + movie.idmovie_source;
+            select.setAttribute('onchange', 'change(this);');
+            cell.appendChild(select);
+            similarmovielist.forEach(function(movie) {
+              var option = document.createElement("option");
+              option.value = movie.idmovie;
+              option.text = movie.releasedate + " " + movie.title;
+              select.appendChild(option);
+            });
+
+            var cell = row.insertCell();
+            cell.className = "normal";
+            cell.innerHTML = "<div style=\"padding: 5px; float: left; display: table-cell;\"><a id=same" + movie.idmovie_source + " href=\"movie/merge/" + select.id.substring(6, select.id.length) + "/" + select.value + "\" onclick=\"removeRow(" + movie.idmovie_source + ");\">相同</a></div>"
+              + "<div style=\"padding: 5px; float: left; display: table-cell;\"><a id=new" + movie.idmovie_source + " href=\"movie/new/" + movie.idmovie_source + "\" onclick=\"removeRow(" + movie.idmovie_source + ");\">新电影</a></div>";
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>
