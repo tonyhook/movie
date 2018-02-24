@@ -11,7 +11,7 @@
   <div id="filelist"></div>
   <div id="close_button" onclick="hide_download_box()"></div>
   <div class="title">电影详情</div>
-  <table class="normal">
+  <table class="normal" id="detail">
     <tr class="noborder">
       <td class="topic" colspan="2">基本信息</td>
     </tr>
@@ -50,12 +50,18 @@
       <th class="noborder"><img src="img/imdb.png" alt="IMDB" height="80px" /></th>
       <td class="noborder">
         <div style="float: left; display: table-cell;">
+          <img id="imdb_poster" alt="IMDB Poster" height="80px" />
+        </div>
+        <div style="float: left; display: table-cell;">
           <table class="noborder">
             <tr class="noborder"><th class="noborder" align="left">Title</th><td class="noborder" id="imdb_title"></td></tr>
             <tr class="noborder"><th class="noborder" align="left">Released</th><td class="noborder" id="imdb_releasedate"></td></tr>
           </table>
         </div>
       </td>
+    </tr>
+    <tr class="noborder" id="movie_source">
+      <td class="topic" colspan="2">来源</td>
     </tr>
   </table>
   <script type="text/javascript" charset="utf-8">
@@ -118,10 +124,75 @@
             td_poster.appendChild(div_poster);
         });
 
-        var td_imdb_title = document.getElementById("imdb_title");
-        td_imdb_title.textContent = data.imdb.title;
-        var td_imdb_releasedate = document.getElementById("imdb_releasedate");
-        td_imdb_releasedate.textContent = data.imdb.releasedate;
+        if (data.imdb != null) {
+          var img_imdb_poster = document.getElementById("imdb_poster");
+          img_imdb_poster.src = "poster/" + data.imdb.poster;
+          var td_imdb_title = document.getElementById("imdb_title");
+          td_imdb_title.textContent = data.imdb.title;
+          var td_imdb_releasedate = document.getElementById("imdb_releasedate");
+          td_imdb_releasedate.textContent = data.imdb.releasedate;
+        } else {
+          var img_imdb_poster = document.getElementById("imdb_poster");
+          img_imdb_poster.hidden = true;
+        }
+
+        var tr_movie_source = document.getElementById("movie_source");
+        var movie_sources = data.movie_sources;
+        movie_sources.forEach(function(movie_source) {
+          var tr = document.getElementById("detail").insertRow();
+          tr.class = "noborder";
+          var th = document.createElement("th");
+          th.class = "noborder";
+          if (movie_source.poster) {
+            var poster = document.createElement("img");
+            poster.src = "poster/" + movie_source.poster;
+            poster.height = 80;
+            th.appendChild(poster);
+          }
+          var td = document.createElement("td");
+          td.class = "noborder";
+          var div_source = document.createElement("div");
+          div_source.style = "float: left; display: table-cell;";
+          var table_source = document.createElement("table");
+          table_source.class = "noborder";
+          var tr1 = table_source.insertRow();
+          var th1 = document.createElement("th");
+          th1.class = "noborder";
+          th1.align = "left";
+          th1.textContent = "Source";
+          tr1.appendChild(th1);
+          var td1 = document.createElement("td");
+          td1.class = "noborder";
+          td1.textContent = movie_source.source.name;
+          tr1.appendChild(td1);
+
+          var tr2 = table_source.insertRow();
+          var th2 = document.createElement("th");
+          th2.class = "noborder";
+          th2.align = "left";
+          th2.textContent = "Title";
+          tr2.appendChild(th2);
+          var td2 = document.createElement("td");
+          td2.class = "noborder";
+          td2.textContent = movie_source.title;
+          tr2.appendChild(td2);
+
+          var tr3 = table_source.insertRow();
+          var th3 = document.createElement("th");
+          th3.class = "noborder";
+          th3.align = "left";
+          th3.textContent = "Release Date";
+          tr3.appendChild(th3);
+          var td3 = document.createElement("td");
+          td3.class = "noborder";
+          td3.textContent = movie_source.releasedate;
+          tr3.appendChild(td3);
+
+          div_source.appendChild(table_source);
+          td.appendChild(div_source);
+          tr.appendChild(th);
+          tr.appendChild(td);
+        });
       });
     });
   </script>
