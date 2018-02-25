@@ -1,29 +1,41 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" href="common.css" type="text/css" />
   <script src="jquery-3.1.0.js" type="text/javascript"></script>
   <title>电影数据编辑</title>
 </head>
+
 <body>
   <div id="bg"></div>
   <div class="title">电影数据编辑</div>
   <table class="normal" id="detail">
     <tr class="noborder">
-      <td class="topic" colspan="2">基本信息<div style="display: inline; position: relative; left: 700px;"><button id="submit" onclick="submit()">修改</button></div></td>
+      <td class="topic" colspan="2">基本信息
+        <div style="display: inline; position: relative; left: 700px;">
+          <button id="submit" onclick="submit()">修改</button>
+        </div>
+      </td>
     </tr>
     <tr class="noborder">
       <th class="noborder">英文名</th>
-      <td class="noborder"><input type="text" id="title_en" value="" /></td>
+      <td class="noborder">
+        <input type="text" id="title_en" value="" />
+      </td>
     </tr>
     <tr class="noborder">
       <th class="noborder">中文名</th>
-      <td class="noborder"><input type="text" id="title_cn" value="" /></td>
+      <td class="noborder">
+        <input type="text" id="title_cn" value="" />
+      </td>
     </tr>
     <tr class="noborder">
       <th class="noborder">首映日期</th>
-      <td class="noborder"><input type="text" id="releasedate" value="" /></td>
+      <td class="noborder">
+        <input type="text" id="releasedate" value="" />
+      </td>
     </tr>
     <tr class="noborder">
       <th class="noborder">品牌</th>
@@ -35,32 +47,46 @@
     </tr>
     <tr class="noborder">
       <th class="noborder">IMDB</th>
-      <td class="noborder"><input type="text" id="imdb" value="" /></td>
+      <td class="noborder">
+        <input type="text" id="imdb" value="" />
+      </td>
     </tr>
     <tr class="noborder">
       <td class="topic" colspan="2">详细内容</td>
     </tr>
     <tr class="noborder">
-      <th class="noborder"><img src="img/movie.png" alt="Movie" height="80px" /></th>
+      <th class="noborder">
+        <img src="img/movie.png" alt="Movie" height="80px" />
+      </th>
       <td class="noborder" id="poster"></td>
     </tr>
     <tr class="noborder">
-      <th class="noborder"><img src="img/cd.png" alt="CD" height="80px" /></th>
+      <th class="noborder">
+        <img src="img/cd.png" alt="CD" height="80px" />
+      </th>
       <td class="noborder" id="cover"></td>
     </tr>
     <tr class="noborder">
       <td class="topic" colspan="2">IMDB信息</td>
     </tr>
     <tr class="noborder">
-      <th class="noborder"><img src="img/imdb.png" alt="IMDB" height="80px" /></th>
+      <th class="noborder">
+        <img src="img/imdb.png" alt="IMDB" height="80px" />
+      </th>
       <td class="noborder">
         <div style="float: left; display: table-cell;">
           <img id="imdb_poster" alt="IMDB Poster" height="80px" />
         </div>
         <div style="float: left; display: table-cell;">
           <table class="noborder">
-            <tr class="noborder"><th class="noborder" align="left">Title</th><td class="noborder" id="imdb_title"></td></tr>
-            <tr class="noborder"><th class="noborder" align="left">Released</th><td class="noborder" id="imdb_releasedate"></td></tr>
+            <tr class="noborder">
+              <th class="noborder" align="left">Title</th>
+              <td class="noborder" id="imdb_title"></td>
+            </tr>
+            <tr class="noborder">
+              <th class="noborder" align="left">Released</th>
+              <td class="noborder" id="imdb_releasedate"></td>
+            </tr>
           </table>
         </div>
       </td>
@@ -78,7 +104,7 @@
     function transformToAssocArray(prmstr) {
       var params = {};
       var prmarr = prmstr.split("&");
-      for ( var i = 0; i < prmarr.length; i++) {
+      for (var i = 0; i < prmarr.length; i++) {
         var tmparr = prmarr[i].split("=");
         params[tmparr[0]] = tmparr[1];
       }
@@ -129,37 +155,37 @@
         data: JSON.stringify(movieinfo),
         url: dataUrl,
         contentType: "application/json",
-        success : function() {
+        success: function () {
           document.getElementById("submit").disabled = false;
         }
       });
     }
 
-    $(function() {
+    $(function () {
       var params = getSearchParameters();
       var idmovie = params["idmovie"] ? params["idmovie"] : "1";
       var dataUrl = params["idmovie"] ? "movie/" + idmovie : "movie/1";
       var companyUrl = "company/list";
 
-      $.get(companyUrl, function(data, status) {
+      $.get(companyUrl, function (data, status) {
         var td_company = document.getElementById("company");
         var td_default_company = document.getElementById("default_company");
         var div_company = null;
 
-        data.forEach(function(company) {
+        data.forEach(function (company) {
           div_company = document.createElement("div");
           div_company.style = "display: inline-block; width: 90px;";
 
-          var input_company  = document.createElement("input");
+          var input_company = document.createElement("input");
           input_company.id = "c" + company.idcompany;
           input_company.type = "checkbox";
           input_company.name = "company[]";
           input_company.value = company.idcompany;
           input_company.checked = false;
-          input_company.onchange = function(){togglecompany(company.idcompany);};
+          input_company.onchange = function () { togglecompany(company.idcompany); };
           div_company.appendChild(input_company);
 
-          var label_company  = document.createElement("label");
+          var label_company = document.createElement("label");
           label_company.htmlFor = "c" + company.idcompany;
           label_company.textContent = company.name;
           div_company.appendChild(label_company);
@@ -170,11 +196,11 @@
         div_company.style = "clear: both;";
         td_company.appendChild(div_company);
 
-        data.forEach(function(company) {
+        data.forEach(function (company) {
           div_company = document.createElement("div");
           div_company.style = "display: inline-block; width: 90px;";
 
-          var input_company  = document.createElement("input");
+          var input_company = document.createElement("input");
           input_company.id = "d" + company.idcompany;
           input_company.type = "radio";
           input_company.name = "default_company";
@@ -183,7 +209,7 @@
           input_company.checked = false;
           div_company.appendChild(input_company);
 
-          var label_company  = document.createElement("label");
+          var label_company = document.createElement("label");
           label_company.htmlFor = "d" + company.idcompany;
           label_company.textContent = company.name;
           div_company.appendChild(label_company);
@@ -193,120 +219,121 @@
         div_company = document.createElement("div");
         div_company.style = "clear: both;";
         td_default_company.appendChild(div_company);
-      });
 
-      $.get(dataUrl, function(data, status) {
-        var text_title_en = document.getElementById("title_en");
-        text_title_en.value = data.title;
+        $.get(dataUrl, function (data, status) {
+          var text_title_en = document.getElementById("title_en");
+          text_title_en.value = data.title;
 
-        var text_title_cn = document.getElementById("title_cn");
-        var akatitles = data.akatitles;
-        akatitles.forEach(function(akatitle) {
-          if (akatitle.language == "Chinese")
-            text_title_cn.value = akatitle.title;
-        });
+          var text_title_cn = document.getElementById("title_cn");
+          var akatitles = data.akatitles;
+          akatitles.forEach(function (akatitle) {
+            if (akatitle.language == "Chinese")
+              text_title_cn.value = akatitle.title;
+          });
 
-        var text_releasedate = document.getElementById("releasedate");
-        text_releasedate.value = data.releasedate;
+          var text_releasedate = document.getElementById("releasedate");
+          text_releasedate.value = data.releasedate;
 
-        var text_imdb = document.getElementById("imdb");
-        if (data.imdb != null)
-          text_imdb.value = data.imdb.imdb;
+          var text_imdb = document.getElementById("imdb");
+          if (data.imdb != null)
+            text_imdb.value = data.imdb.imdb;
 
-        var td_company = document.getElementById("company");
-        var companies = data.movie_companies;
-        companies.forEach(function(company) {
-          var companyid = company.company.idcompany;
-          document.getElementById("c" + companyid).checked = true;
-          document.getElementById("d" + companyid).disabled = false;
-          if (company.preferred == 1) {
-            document.getElementById("d" + companyid).checked = true;
+          var td_company = document.getElementById("company");
+          var companies = data.movie_companies;
+          companies.forEach(function (company) {
+            var companyid = company.company.idcompany;
+            document.getElementById("c" + companyid).checked = true;
+            document.getElementById("d" + companyid).disabled = false;
+            if (company.preferred == 1) {
+              document.getElementById("d" + companyid).checked = true;
+            }
+          });
+
+          var td_poster = document.getElementById("poster");
+          var posters = data.posters;
+          posters.forEach(function (poster) {
+            var div_poster = document.createElement("div");
+            div_poster.style = "display: inline; padding: 5px;";
+            var img = document.createElement("img");
+            img.style = "height: 200px;";
+            img.src = "poster/" + poster.idposter + "/" + poster.imagename;
+            div_poster.appendChild(img);
+            td_poster.appendChild(div_poster);
+          });
+
+          if (data.imdb != null) {
+            var img_imdb_poster = document.getElementById("imdb_poster");
+            img_imdb_poster.src = "poster/" + data.imdb.poster;
+            var td_imdb_title = document.getElementById("imdb_title");
+            td_imdb_title.textContent = data.imdb.title;
+            var td_imdb_releasedate = document.getElementById("imdb_releasedate");
+            td_imdb_releasedate.textContent = data.imdb.releasedate;
+          } else {
+            var img_imdb_poster = document.getElementById("imdb_poster");
+            img_imdb_poster.hidden = true;
           }
-        });
 
-        var td_poster = document.getElementById("poster");
-        var posters = data.posters;
-        posters.forEach(function(poster) {
-          var div_poster = document.createElement("div");
-          div_poster.style="display: inline; padding: 5px;";
-          var img = document.createElement("img");
-          img.style = "height: 200px;";
-          img.src = "poster/" + poster.idposter + "/" + poster.imagename;
-          div_poster.appendChild(img);
-          td_poster.appendChild(div_poster);
-        });
+          var tr_movie_source = document.getElementById("movie_source");
+          var movie_sources = data.movie_sources;
+          movie_sources.forEach(function (movie_source) {
+            var tr = document.getElementById("detail").insertRow();
+            tr.class = "noborder";
+            var th = document.createElement("th");
+            th.class = "noborder";
+            if (movie_source.poster) {
+              var poster = document.createElement("img");
+              poster.src = "poster/" + movie_source.poster;
+              poster.height = 80;
+              th.appendChild(poster);
+            }
+            var td = document.createElement("td");
+            td.class = "noborder";
+            var div_source = document.createElement("div");
+            div_source.style = "float: left; display: table-cell;";
+            var table_source = document.createElement("table");
+            table_source.class = "noborder";
+            var tr1 = table_source.insertRow();
+            var th1 = document.createElement("th");
+            th1.class = "noborder";
+            th1.align = "left";
+            th1.textContent = "Source";
+            tr1.appendChild(th1);
+            var td1 = document.createElement("td");
+            td1.class = "noborder";
+            td1.textContent = movie_source.source.name;
+            tr1.appendChild(td1);
 
-        if (data.imdb != null) {
-          var img_imdb_poster = document.getElementById("imdb_poster");
-          img_imdb_poster.src = "poster/" + data.imdb.poster;
-          var td_imdb_title = document.getElementById("imdb_title");
-          td_imdb_title.textContent = data.imdb.title;
-          var td_imdb_releasedate = document.getElementById("imdb_releasedate");
-          td_imdb_releasedate.textContent = data.imdb.releasedate;
-        } else {
-          var img_imdb_poster = document.getElementById("imdb_poster");
-          img_imdb_poster.hidden = true;
-        }
+            var tr2 = table_source.insertRow();
+            var th2 = document.createElement("th");
+            th2.class = "noborder";
+            th2.align = "left";
+            th2.textContent = "Title";
+            tr2.appendChild(th2);
+            var td2 = document.createElement("td");
+            td2.class = "noborder";
+            td2.textContent = movie_source.title;
+            tr2.appendChild(td2);
 
-        var tr_movie_source = document.getElementById("movie_source");
-        var movie_sources = data.movie_sources;
-        movie_sources.forEach(function(movie_source) {
-          var tr = document.getElementById("detail").insertRow();
-          tr.class = "noborder";
-          var th = document.createElement("th");
-          th.class = "noborder";
-          if (movie_source.poster) {
-            var poster = document.createElement("img");
-            poster.src = "poster/" + movie_source.poster;
-            poster.height = 80;
-            th.appendChild(poster);
-          }
-          var td = document.createElement("td");
-          td.class = "noborder";
-          var div_source = document.createElement("div");
-          div_source.style = "float: left; display: table-cell;";
-          var table_source = document.createElement("table");
-          table_source.class = "noborder";
-          var tr1 = table_source.insertRow();
-          var th1 = document.createElement("th");
-          th1.class = "noborder";
-          th1.align = "left";
-          th1.textContent = "Source";
-          tr1.appendChild(th1);
-          var td1 = document.createElement("td");
-          td1.class = "noborder";
-          td1.textContent = movie_source.source.name;
-          tr1.appendChild(td1);
+            var tr3 = table_source.insertRow();
+            var th3 = document.createElement("th");
+            th3.class = "noborder";
+            th3.align = "left";
+            th3.textContent = "Release Date";
+            tr3.appendChild(th3);
+            var td3 = document.createElement("td");
+            td3.class = "noborder";
+            td3.textContent = movie_source.releasedate;
+            tr3.appendChild(td3);
 
-          var tr2 = table_source.insertRow();
-          var th2 = document.createElement("th");
-          th2.class = "noborder";
-          th2.align = "left";
-          th2.textContent = "Title";
-          tr2.appendChild(th2);
-          var td2 = document.createElement("td");
-          td2.class = "noborder";
-          td2.textContent = movie_source.title;
-          tr2.appendChild(td2);
-
-          var tr3 = table_source.insertRow();
-          var th3 = document.createElement("th");
-          th3.class = "noborder";
-          th3.align = "left";
-          th3.textContent = "Release Date";
-          tr3.appendChild(th3);
-          var td3 = document.createElement("td");
-          td3.class = "noborder";
-          td3.textContent = movie_source.releasedate;
-          tr3.appendChild(td3);
-
-          div_source.appendChild(table_source);
-          td.appendChild(div_source);
-          tr.appendChild(th);
-          tr.appendChild(td);
+            div_source.appendChild(table_source);
+            td.appendChild(div_source);
+            tr.appendChild(th);
+            tr.appendChild(td);
+          });
         });
       });
     });
   </script>
 </body>
+
 </html>
