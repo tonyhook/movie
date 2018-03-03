@@ -165,6 +165,9 @@
     }
 
     $(function() {
+      if (document.cookie.indexOf("token=") == -1)
+        document.location = "/login.html";
+
       var params = getSearchParameters();
       var company = params["company"] ? params["company"] : "Disney";
       var dataUrl = params["company"] ? "movie/company/" + company : "movie/company/all";

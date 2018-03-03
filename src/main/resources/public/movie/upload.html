@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="title">电影数据上传</div>
-  <form action="movie/manualupdate" method="post" enctype="multipart/form-data">
+  <form action="movie/manualupdate" method="post" id="manualupdate" enctype="multipart/form-data">
     <table class="noborder">
       <tr class="noborder">
         <td class="noborder">来源</td>
@@ -17,7 +17,7 @@
       <tr class="noborder">
         <td class="noborder">下载模板</td>
         <td class="noborder"></td>
-        <td class="noborder"><button id="download" name="action" value="download" type="submit">下载</button></td>
+        <td class="noborder"><button id="download" name="action" value="download" type="submit" onclick="submit();">下载</button></td>
       </tr>
       <tr class="noborder">
         <td class="noborder">访问来源</td>
@@ -26,12 +26,27 @@
       <tr class="noborder">
         <td class="noborder">选择文件</td>
         <td class="noborder"><input type="file" id="file" name="file" /></td>
-        <td class="noborder"><button id="upload" name="action" value="upload" type="submit">上传</button></td>
+        <td class="noborder"><button id="upload" name="action" value="upload" type="submit" onclick="submit();">上传</button></td>
       </tr>
     </table>
   </form>
   <script type="text/javascript" charset="utf-8">
     var sourcelist = null;
+
+    function getCookie(c_name)
+    {
+      if (document.cookie.length > 0) {
+        c_start=document.cookie.indexOf(c_name + "=");
+        if (c_start!=-1) { 
+          c_start = c_start + c_name.length + 1; 
+          c_end = document.cookie.indexOf(";", c_start);
+          if (c_end==-1)
+            c_end = document.cookie.length;
+          return unescape(document.cookie.substring(c_start,c_end));
+        }
+      }
+      return "";
+    }
 
     function changesource() {
       var idsource = document.getElementById('sourcelist').value;
@@ -44,7 +59,18 @@
       });
     };
 
+    function submit() {
+      var formobj = new FormData(document.getElementById("manualupdate"));
+      var xmlobj = new XMLHttpRequest();
+      xhr.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.open("POST", "movie/manualupdate");
+      xmlobj.send(formobj);
+    }
+
     $(function() {
+      if (document.cookie.indexOf("token=") == -1)
+        document.location = "/login.html";
+
       var sourceUrl = "source/list";
       $.get(sourceUrl, function(data, status) {
         var select_source = document.getElementById("sourcelist");
