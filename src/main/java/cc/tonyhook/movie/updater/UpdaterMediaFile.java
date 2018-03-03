@@ -22,12 +22,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import cc.tonyhook.movie.Akatitle;
-import cc.tonyhook.movie.Company;
-import cc.tonyhook.movie.CompanyRepository;
-import cc.tonyhook.movie.Movie;
-import cc.tonyhook.movie.MovieRepository;
-import cc.tonyhook.movie.Movie_company;
+import cc.tonyhook.movie.domain.Akatitle;
+import cc.tonyhook.movie.domain.Company;
+import cc.tonyhook.movie.domain.CompanyRepository;
+import cc.tonyhook.movie.domain.Movie;
+import cc.tonyhook.movie.domain.MovieRepository;
+import cc.tonyhook.movie.domain.Movie_company;
 
 @Component
 public class UpdaterMediaFile {

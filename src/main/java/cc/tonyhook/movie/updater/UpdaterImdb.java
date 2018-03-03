@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import cc.tonyhook.movie.Imdb;
-import cc.tonyhook.movie.ImdbRepository;
-import cc.tonyhook.movie.Movie;
-import cc.tonyhook.movie.MovieRepository;
-import cc.tonyhook.movie.Poster;
-import cc.tonyhook.movie.PosterRepository;
+import cc.tonyhook.movie.domain.Imdb;
+import cc.tonyhook.movie.domain.ImdbRepository;
+import cc.tonyhook.movie.domain.Movie;
+import cc.tonyhook.movie.domain.MovieRepository;
+import cc.tonyhook.movie.domain.Poster;
+import cc.tonyhook.movie.domain.PosterRepository;
 
 @Component
 public class UpdaterImdb {

@@ -1,4 +1,4 @@
-package cc.tonyhook.movie;
+package cc.tonyhook.movie.domain;
 
 import java.sql.Date;
 import java.util.Set;

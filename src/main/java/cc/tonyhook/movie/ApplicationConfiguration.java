@@ -8,6 +8,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import cc.tonyhook.movie.security.JwtAuthenticationFilter;
+import cc.tonyhook.movie.security.JwtLoginFilter;
+
 @Configuration
 @EnableWebSecurity
 public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {

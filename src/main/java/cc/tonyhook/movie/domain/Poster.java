@@ -1,4 +1,4 @@
-package cc.tonyhook.movie;
+package cc.tonyhook.movie.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

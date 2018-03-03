@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import cc.tonyhook.movie.Source;
-import cc.tonyhook.movie.SourceRepository;
+import cc.tonyhook.movie.domain.Source;
+import cc.tonyhook.movie.domain.SourceRepository;
 
 @RestController
 public class SourceController {

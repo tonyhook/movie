@@ -12,10 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import cc.tonyhook.movie.Poster;
-import cc.tonyhook.movie.PosterRepository;
-import cc.tonyhook.movie.Posterimg;
-import cc.tonyhook.movie.PosterimgRepository;
+import cc.tonyhook.movie.domain.Poster;
+import cc.tonyhook.movie.domain.PosterRepository;
+import cc.tonyhook.movie.domain.Posterimg;
+import cc.tonyhook.movie.domain.PosterimgRepository;
 
 @Component
 public class UpdaterPoster {

@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import cc.tonyhook.movie.Movie_source;
-import cc.tonyhook.movie.Source;
-import cc.tonyhook.movie.SourceRepository;
 import cc.tonyhook.movie.controller.MovieController;
+import cc.tonyhook.movie.domain.Movie_source;
+import cc.tonyhook.movie.domain.Source;
+import cc.tonyhook.movie.domain.SourceRepository;
 
 @Component
 public class UpdaterMoviesAnywhere {

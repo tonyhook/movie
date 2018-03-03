@@ -1,4 +1,4 @@
-package cc.tonyhook.movie;
+package cc.tonyhook.movie.security;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.security.authentication.AuthenticationManager;

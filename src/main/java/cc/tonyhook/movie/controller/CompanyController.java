@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import cc.tonyhook.movie.Company;
-import cc.tonyhook.movie.CompanyRepository;
+import cc.tonyhook.movie.domain.Company;
+import cc.tonyhook.movie.domain.CompanyRepository;
 
 @RestController
 public class CompanyController {

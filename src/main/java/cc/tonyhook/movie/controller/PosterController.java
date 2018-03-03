@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import cc.tonyhook.movie.Poster;
-import cc.tonyhook.movie.PosterRepository;
-import cc.tonyhook.movie.PosterimgRepository;
+import cc.tonyhook.movie.domain.Poster;
+import cc.tonyhook.movie.domain.PosterRepository;
+import cc.tonyhook.movie.domain.PosterimgRepository;
 
 @RestController
 public class PosterController {
