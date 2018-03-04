@@ -361,8 +361,37 @@ public class MovieController {
         }
     }
 
+    @RequestMapping(value = "/movie/movie/manualupdate/{idsource}", method = RequestMethod.GET)
+    public void downloadMovieList(@PathVariable("idsource") Integer idsource, HttpServletResponse response) {
+        try {
+            response.setHeader("Content-Disposition", "attachment;filename=\"" + String.valueOf(idsource) + ".csv\"");
+            response.setContentType("application/vnd.ms-excel");
+            OutputStream out = response.getOutputStream();
+            CSVPrinter csvPrinter = new CSVPrinter(new OutputStreamWriter(out),
+                    CSVFormat.DEFAULT.withHeader("title", "officialid", "officialsite", "poster", "releasedate"));
+            DateFormat dt = DateFormat.getDateInstance(DateFormat.LONG, Locale.US);
+
+            List<Movie_source> movie_sources = movie_sourceRepository
+                    .findAllBySource(sourceRepository.findOne(idsource));
+            for (Movie_source movie_source : movie_sources) {
+                String releasedate = "";
+                if (movie_source.getReleasedate() != null)
+                    releasedate = dt.format(movie_source.getReleasedate());
+                csvPrinter.printRecord(movie_source.getTitle(), movie_source.getOfficialid(),
+                        movie_source.getOfficialsite(), movie_source.getPoster(), releasedate);
+            }
+            csvPrinter.flush();
+            csvPrinter.close();
+
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            response.setStatus(500);
+        }
+    }
+
     @RequestMapping(value = "/movie/movie/manualupdate", method = RequestMethod.POST, consumes = "multipart/form-data")
-    public ResponseEntity<?> uploadMovie(@RequestParam("idsource") Integer idsource,
+    public ResponseEntity<?> uploadMovieList(@RequestParam("idsource") Integer idsource,
             @RequestParam("action") String action, @RequestParam("file") MultipartFile file,
             HttpServletResponse response) {
         if (action.equals("upload")) {
@@ -393,35 +422,6 @@ public class MovieController {
 
                     newMovie_source(movie_source);
                 }
-            } catch (IOException e) {
-                response.setStatus(500);
-            }
-        }
-
-        if (action.equals("download")) {
-            try {
-                response.setHeader("Content-Disposition",
-                        "attachment;filename=\"" + String.valueOf(idsource) + ".csv\"");
-                response.setContentType("application/vnd.ms-excel");
-                OutputStream out = response.getOutputStream();
-                CSVPrinter csvPrinter = new CSVPrinter(new OutputStreamWriter(out),
-                        CSVFormat.DEFAULT.withHeader("title", "officialid", "officialsite", "poster", "releasedate"));
-                DateFormat dt = DateFormat.getDateInstance(DateFormat.LONG, Locale.US);
-
-                List<Movie_source> movie_sources = movie_sourceRepository
-                        .findAllBySource(sourceRepository.findOne(idsource));
-                for (Movie_source movie_source : movie_sources) {
-                    String releasedate = "";
-                    if (movie_source.getReleasedate() != null)
-                        releasedate = dt.format(movie_source.getReleasedate());
-                    csvPrinter.printRecord(movie_source.getTitle(), movie_source.getOfficialid(),
-                            movie_source.getOfficialsite(), movie_source.getPoster(), releasedate);
-                }
-                csvPrinter.flush();
-                csvPrinter.close();
-
-                out.flush();
-                out.close();
             } catch (IOException e) {
                 response.setStatus(500);
             }

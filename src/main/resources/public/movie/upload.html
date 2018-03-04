@@ -17,7 +17,7 @@
       <tr class="noborder">
         <td class="noborder">下载模板</td>
         <td class="noborder"></td>
-        <td class="noborder"><button id="download" name="action" value="download" type="submit" onclick="submit();">下载</button></td>
+        <td class="noborder"><input type="submit" id="download" name="action" value="download" onclick="return downloadList();"/></td>
       </tr>
       <tr class="noborder">
         <td class="noborder">访问来源</td>
@@ -26,7 +26,7 @@
       <tr class="noborder">
         <td class="noborder">选择文件</td>
         <td class="noborder"><input type="file" id="file" name="file" /></td>
-        <td class="noborder"><button id="upload" name="action" value="upload" type="submit" onclick="submit();">上传</button></td>
+        <td class="noborder"><input type="submit" id="upload" name="action" value="upload" onclick="return uploadList();"/></td>
       </tr>
     </table>
   </form>
@@ -37,10 +37,10 @@
     {
       if (document.cookie.length > 0) {
         c_start=document.cookie.indexOf(c_name + "=");
-        if (c_start!=-1) { 
-          c_start = c_start + c_name.length + 1; 
+        if (c_start != -1) {
+          c_start = c_start + c_name.length + 1;
           c_end = document.cookie.indexOf(";", c_start);
-          if (c_end==-1)
+          if (c_end == -1)
             c_end = document.cookie.length;
           return unescape(document.cookie.substring(c_start,c_end));
         }
@@ -59,12 +59,26 @@
       });
     };
 
-    function submit() {
+    function downloadList() {
+      window.location = "movie/manualupdate/" + document.getElementById('sourcelist').value;
+      return false;
+    }
+
+    function uploadList() {
       var formobj = new FormData(document.getElementById("manualupdate"));
+      formobj.append("action", "upload");
       var xmlobj = new XMLHttpRequest();
-      xhr.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 403) {
+           window.location = "/login.html";
+         }
+       }
+      };
       xmlobj.open("POST", "movie/manualupdate");
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
       xmlobj.send(formobj);
+      return false;
     }
 
     $(function() {

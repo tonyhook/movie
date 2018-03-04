@@ -172,6 +172,9 @@
         headers: {"Authorization": getCookie("token")},
         success: function () {
           document.getElementById("submit").disabled = false;
+        },
+        error: function () {
+          window.location = "/login.html";
         }
       });
     }

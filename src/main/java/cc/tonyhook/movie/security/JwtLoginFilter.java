@@ -53,7 +53,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         User principal = (User) authResult.getPrincipal();
         String username = principal.getUsername();
-        String token = JwtUtils.sign(username, System.currentTimeMillis() + 30 * 60 * 1000);
+        String token = JwtUtils.sign(username, 30 * 60 * 1000);
         response.addHeader("Authorization", JwtUtils.getTokenHeader(token));
     }
 }
