@@ -282,6 +282,18 @@
             td_poster.appendChild(div_poster);
           });
 
+          var td_cover = document.getElementById("cover");
+          var covers = data.albums;
+          covers.forEach(function(cover) {
+            var div_cover = document.createElement("div");
+            div_cover.style="display: inline; padding: 5px;";
+            var img = document.createElement("img");
+            img.style = "height: 150px;";
+            img.src = "cover/" + idmovie + "/" + cover.title;
+            div_cover.appendChild(img);
+            td_cover.appendChild(div_cover);
+          });
+
           if (data.imdb != null) {
             var img_imdb_poster = document.getElementById("imdb_poster");
             img_imdb_poster.src = "poster/" + data.imdb.poster;

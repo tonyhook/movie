@@ -50,6 +50,10 @@ public class Movie {
     @JoinColumn(name = "movieid")
     private Set<Poster> posters;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "movieid")
+    private Set<Album> albums;
+
     public Integer getIdmovie() {
         return idmovie;
     }
@@ -128,6 +132,14 @@ public class Movie {
 
     public void setPosters(Set<Poster> posters) {
         this.posters = posters;
+    }
+
+    public Set<Album> getAlbums() {
+        return albums;
+    }
+
+    public void setAlbums(Set<Album> albums) {
+        this.albums = albums;
     }
 
 }

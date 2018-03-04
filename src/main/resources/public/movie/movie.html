@@ -63,7 +63,7 @@
             div_image.innerHTML = "<a href=\"view.html?idmovie=" + movie.idmovie + "\"><img class=\"lazy\" data-original=\"/movie/img/poster.png\" alt=\"" + movie.title + "\" width=\"150px\"/></a>";
           }
           div_box.appendChild(div_image);
-          if (movie.audio == 1) {
+          if (movie.audio > 0) {
             var div_audio = document.createElement("div");
             div_audio.className = "sticky-left";
             div_audio.innerHTML = "<img src=\"img/audion.png\" alt=\"audio\" height=\"40px\" />";

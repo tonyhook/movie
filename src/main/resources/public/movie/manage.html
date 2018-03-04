@@ -196,14 +196,14 @@
         for (var i = 0; i < movielist.length; i++)
         {
           index[i] = i;
-          if (movielist[i].audio == 1)
-            audio++;
+          if (movielist[i].audio > 0)
+            audio += movielist[i].audio;
           if (movielist[i].video == 1)
             video++;
         }
-        document.getElementById("counter").textContent = "总记录数： " + movielist.length;
-        document.getElementById("audio").textContent = "音频文件数： " + audio;
-        document.getElementById("video").textContent = "视频文件数： " + video;
+        document.getElementById("counter").textContent = "总电影数： " + movielist.length;
+        document.getElementById("audio").textContent = "电影原声数： " + audio;
+        document.getElementById("video").textContent = "电影视频数： " + video;
         filltable();
       });
     });
