@@ -285,6 +285,9 @@ public class MovieController {
     public @ResponseBody ResponseEntity<?> mergeMovie(@PathVariable("idmovie_source") Integer idmovie_source,
             @PathVariable("idmovie") Integer idmovie) {
         Movie_source movie_source = movie_sourceRepository.findOne(idmovie_source);
+        
+        if (movie_source.getMovieid() != null)
+            return ResponseEntity.noContent().build();
 
         movie_source.setMovieid(idmovie);
         movie_sourceRepository.save(movie_source);
@@ -307,6 +310,9 @@ public class MovieController {
     @RequestMapping(value = "/movie/movie/new/{idmovie_source}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
     public ResponseEntity<?> newMovie(@PathVariable("idmovie_source") Integer idmovie_source) {
         Movie_source movie_source = movie_sourceRepository.findOne(idmovie_source);
+
+        if (movie_source.getMovieid() != null)
+            return ResponseEntity.noContent().build();
 
         Movie movie = new Movie();
         movie.setTitle(movie_source.getTitle());
