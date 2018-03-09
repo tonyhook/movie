@@ -4,7 +4,6 @@ import java.net.URI;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.sql.Blob;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,10 +13,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.sql.rowset.serial.SerialBlob;
-
 import org.jsoup.Jsoup;
-import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -57,19 +53,6 @@ public class UpdaterMediaFile {
             }
         } };
         return certs;
-    }
-
-    public Blob getCover(String coverUrl) {
-        try {
-            Response resp;
-            resp = Jsoup.connect(coverUrl).ignoreContentType(true).maxBodySize(0).execute();
-
-            return new SerialBlob(resp.bodyAsBytes());
-        } catch (Throwable e) {
-            System.out.println("Cover: failed to get " + coverUrl);
-            return null;
-        }
-
     }
 
     private Set<String> getAlbums(String companyName, String movieName) {
@@ -178,8 +161,6 @@ public class UpdaterMediaFile {
                                 newAlbum.setMovieid(movie.getIdmovie());
                                 newAlbum.setTitle(albumTitle);
                                 newAlbum.setType("Soundtrack");
-                                newAlbum.setCover(getCover("https://tonyhook.3322.org:4443/Movie/CD/" + path + "/"
-                                        + albumTitle + "/" + albumTitle + ".jpg"));
                                 albumRepository.save(newAlbum);
                             }
                         }

@@ -1,13 +1,9 @@
 package cc.tonyhook.movie.domain;
 
-import java.sql.Blob;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Album {
@@ -23,8 +19,13 @@ public class Album {
 
     private Integer duration;
 
-    @JsonIgnore
-    private Blob cover;
+    public Integer getIdalbum() {
+        return idalbum;
+    }
+
+    public void setIdalbum(Integer idalbum) {
+        this.idalbum = idalbum;
+    }
 
     public Integer getMovieid() {
         return movieid;
@@ -56,14 +57,6 @@ public class Album {
 
     public void setDuration(Integer duration) {
         this.duration = duration;
-    }
-
-    public Blob getCover() {
-        return cover;
-    }
-
-    public void setCover(Blob cover) {
-        this.cover = cover;
     }
 
 }
