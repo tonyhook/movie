@@ -1,16 +1,8 @@
 package cc.tonyhook.movie.updater;
 
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.sql.Blob;
 import java.util.Set;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.sql.rowset.serial.SerialBlob;
 
 import org.jsoup.Jsoup;
@@ -36,27 +28,12 @@ public class UpdaterCover {
     private AlbumRepository albumRepository;
     @Autowired
     private CoverimgRepository coverimgRepository;
-
-    private TrustManager[] get_trust_mgr() {
-        TrustManager[] certs = new TrustManager[] { new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-
-            public void checkClientTrusted(X509Certificate[] certs, String t) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] certs, String t) {
-            }
-        } };
-        return certs;
-    }
+    
+    private static String NAS_ADDRESS = "https://tonyhook.3322.org:4443/Movie/";
 
     public Blob getCover(String coverUrl) {
         try {
-            Response resp;
-            resp = Jsoup.connect(coverUrl).ignoreContentType(true).maxBodySize(0).execute();
-
+            Response resp = Jsoup.connect(coverUrl).ignoreContentType(true).maxBodySize(0).execute();
             return new SerialBlob(resp.bodyAsBytes());
         } catch (Throwable e) {
             System.out.println("Cover: failed to get " + coverUrl);
@@ -85,7 +62,7 @@ public class UpdaterCover {
             }
             String albumTitle = album.getTitle();
 
-            Blob image = getCover("https://tonyhook.3322.org:4443/Movie/CD/"
+            Blob image = getCover(NAS_ADDRESS + "CD/"
                     + companyName + "/Soundtrack/" + movieName + "/"
                     + albumTitle + "/" + albumTitle + ".jpg");
 
@@ -119,16 +96,7 @@ public class UpdaterCover {
     @Scheduled(fixedRate = 500000, initialDelay = 0)
     @Transactional
     public void updateCoverRepository() {
-        try {
-            SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, get_trust_mgr(), new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                public boolean verify(String host, SSLSession sess) {
-                    return true;
-                }
-            });
-    
+        try {    
             Iterable<Album> albums = albumRepository.findAll();
     
             for (Album album : albums) {

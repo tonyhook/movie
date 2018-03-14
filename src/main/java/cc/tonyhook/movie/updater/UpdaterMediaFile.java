@@ -1,18 +1,10 @@
 package cc.tonyhook.movie.updater;
 
 import java.net.URI;
-import java.net.URL;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
+import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -40,42 +32,21 @@ public class UpdaterMediaFile {
     @Autowired
     private AlbumRepository albumRepository;
 
-    private TrustManager[] get_trust_mgr() {
-        TrustManager[] certs = new TrustManager[] { new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
+    private static String NAS_ADDRESS = "tonyhook.3322.org";
+    private static int NAS_PORT = 4443;
+    private static String NAS_SHARE = "Movie";
 
-            public void checkClientTrusted(X509Certificate[] certs, String t) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] certs, String t) {
-            }
-        } };
-        return certs;
-    }
-
-    private Set<String> getAlbums(String companyName, String movieName) {
+    private Set<String> getAlbumsOnce(String companyName, String movieName) {
         Set<String> albums = new HashSet<String>();
 
         try {
-            String path = companyName + "/Soundtrack/" + movieName;
-            URI uri = new URI("https", "//tonyhook.3322.org:4443/Movie/CD/" + path + "/", null);
-
-            SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, get_trust_mgr(), new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection connection = (HttpsURLConnection) uri.toURL().openConnection();
+            URI uri = new URI("https", null, NAS_ADDRESS, NAS_PORT,
+                    "/" + NAS_SHARE + "/CD/" + companyName + "/Soundtrack/" + movieName + "/", null, null);
+            URLConnection connection = uri.toURL().openConnection();
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(10000);
-            connection.setHostnameVerifier(new HostnameVerifier() {
-                public boolean verify(String host, SSLSession sess) {
-                    return true;
-                }
-            });
 
-            Document doc = Jsoup.parse(connection.getInputStream(), "UTF-8",
-                    "https://tonyhook.3322.org:4443/Movie/CD/" + path + "/");
+            Document doc = Jsoup.parse(connection.getInputStream(), "UTF-8", uri.getPath());
             Elements elements = doc.getElementsByTag("tr");
             for (Element element : elements) {
                 if (element.getElementsByTag("img").size() == 0)
@@ -88,33 +59,42 @@ public class UpdaterMediaFile {
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            System.out.println("Album: failed to get " + companyName + "/" + movieName + ", try again");
+            return null;
         }
 
         return albums;
     }
 
-    public void UpdateAudioFile() {
-        try {
-            String url = "https://tonyhook.3322.org:4443/Movie/CD/";
-            SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, get_trust_mgr(), new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+    private Set<String> getAlbums(String companyName, String movieName) {
+        int count = 0;
+        Set<String> albums = null;
+        while (count < 3) {
+            albums = getAlbumsOnce(companyName, movieName);
+            if (albums == null) {
+                count++;
+            } else {
+                return albums;
+            }
+        }
+        System.out.println("Album: failed to get " + companyName + "/" + movieName + ", give up");
+        return null;
+    }
 
-            Set<String> movieFolders = new HashSet<String>();
+    private Set<String> getMovieFoldersOnce(String mediaType, String defaultPath) {
+        Set<String> movieFolders = new HashSet<String>();
+
+        try {
             Iterable<Company> companies = companyRepository.findAll();
 
             for (Company company : companies) {
-                HttpsURLConnection connection = (HttpsURLConnection) new URL(url + company.getName() + "/Soundtrack/").openConnection();
+                URI uri = new URI("https", null, NAS_ADDRESS, NAS_PORT,
+                        "/" + NAS_SHARE + "/" + mediaType + "/" + company.getName() + "/" + defaultPath + "/", null, null);
+                URLConnection connection = uri.toURL().openConnection();
                 connection.setConnectTimeout(10000);
                 connection.setReadTimeout(10000);
-                connection.setHostnameVerifier(new HostnameVerifier() {
-                    public boolean verify(String host, SSLSession sess) {
-                        return true;
-                    }
-                });
 
-                Document doc = Jsoup.parse(connection.getInputStream(), "UTF-8", url + company.getName() + "/Soundtrack/");
+                Document doc = Jsoup.parse(connection.getInputStream(), "UTF-8", uri.getPath());
                 Elements elements;
 
                 elements = doc.getElementsByTag("a");
@@ -122,37 +102,69 @@ public class UpdaterMediaFile {
                     String folderName = element.ownText().substring(0, element.ownText().length() - 1);
 
                     if (folderName.substring(0, 1).matches("[0-9]")) {
-                        movieFolders.add(company.getName() + "/Soundtrack/" + folderName);
+                        movieFolders.add(company.getName() + "/" + defaultPath + "/" + folderName);
                     }
                 }
             }
+        } catch (Throwable e) {
+            System.out.println("MovieFolder: failed to get " + mediaType + ", try again");
+            return null;
+        }
 
-            Iterable<Movie> movies = movieRepository.findAll();
+        return movieFolders;
+    }
 
-            for (Movie movie : movies) {
-                if (movie.getReleasedate() != null) {
-                    String companyName = null;
+    private Set<String> getMovieFolders(String mediaType, String defaultPath) {
+        int count = 0;
+        Set<String> movieFolders = null;
+        while (count < 3) {
+            movieFolders = getMovieFoldersOnce(mediaType, defaultPath);
+            if (movieFolders == null) {
+                count++;
+            } else {
+                return movieFolders;
+            }
+        }
+        System.out.println("MovieFolder: failed to get " + mediaType + " list, give up");
+        return null;
+    }
 
-                    if (movie.getMovie_companies() != null) {
-                        Set<Movie_company> movie_companies = movie.getMovie_companies();
-                        for (Movie_company movie_company : movie_companies) {
-                            if (movie_company.getPreferred() == 1) {
-                                companyName = movie_company.getCompany().getName();
-                            }
-                        }
-                    }
+    private String getDefaultCompanyName(Movie movie) {
+        if (movie.getMovie_companies() != null) {
+            Set<Movie_company> movie_companies = movie.getMovie_companies();
+            for (Movie_company movie_company : movie_companies) {
+                if (movie_company.getPreferred() == 1) {
+                    return movie_company.getCompany().getName();
+                }
+            }
+        }
+        return "";
+    }
 
-                    String movieName = movie.getReleasedate().toString().replace("-", ".") + "."
-                            + movie.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ");
-                    if (movieName.endsWith(".")) {
-                        movieName = movieName.substring(0, movieName.length() - 1);
-                    }
-                    String path = companyName + "/Soundtrack/" + movieName;
+    public void UpdateAudioFile() {
+        Set<String> movieFolders = getMovieFolders("CD", "Soundtrack");
 
-                    if (movieFolders.contains(path)) {
-                        movieFolders.remove(path);
+        if (movieFolders == null)
+            return;
 
-                        Set<String> AlbumTitles = getAlbums(companyName, movieName);
+        Iterable<Movie> movies = movieRepository.findAll();
+
+        for (Movie movie : movies) {
+            if (movie.getReleasedate() != null) {
+                String companyName = getDefaultCompanyName(movie);
+
+                String movieName = movie.getReleasedate().toString().replace("-", ".") + "."
+                        + movie.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ");
+                if (movieName.endsWith(".")) {
+                    movieName = movieName.substring(0, movieName.length() - 1);
+                }
+                String path = companyName + "/Soundtrack/" + movieName;
+
+                if (movieFolders.contains(path)) {
+                    movieFolders.remove(path);
+
+                    Set<String> AlbumTitles = getAlbums(companyName, movieName);
+                    if (AlbumTitles != null) {
                         movie.setAudio(AlbumTitles.size());
 
                         for (String albumTitle : AlbumTitles) {
@@ -164,100 +176,59 @@ public class UpdaterMediaFile {
                                 albumRepository.save(newAlbum);
                             }
                         }
-                    } else {
-                        movie.setAudio(0);
                     }
-
-                    movieRepository.save(movie);
+                } else {
+                    movie.setAudio(0);
                 }
-            }
 
-            for (String movieFolder : movieFolders) {
-                System.out.println("Audio: no movie matches " + movieFolder);
+                movieRepository.save(movie);
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        }
+
+        for (String movieFolder : movieFolders) {
+            System.out.println("Audio: no movie matches " + movieFolder);
         }
     }
 
     public void UpdateVideoFile() {
-        try {
-            String url = "https://tonyhook.3322.org:4443/Movie/Movie/";
-            SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, get_trust_mgr(), new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        Set<String> movieFolders = getMovieFolders("Movie", "000.All");
 
-            Set<String> movieFolders = new HashSet<String>();
-            Iterable<Company> companies = companyRepository.findAll();
+        if (movieFolders == null)
+            return;
 
-            for (Company company : companies) {
-                HttpsURLConnection connection = (HttpsURLConnection) new URL(url + company.getName() + "/000.All/").openConnection();
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                connection.setHostnameVerifier(new HostnameVerifier() {
-                    public boolean verify(String host, SSLSession sess) {
-                        return true;
-                    }
-                });
+        Iterable<Movie> movies = movieRepository.findAll();
 
-                Document doc = Jsoup.parse(connection.getInputStream(), "UTF-8", url + company.getName() + "/000.All/");
-                Elements elements;
+        for (Movie movie : movies) {
+            if (movie.getReleasedate() != null) {
+                String companyName = getDefaultCompanyName(movie);
 
-                elements = doc.getElementsByTag("a");
-                for (Element element : elements) {
-                    String folderName = element.ownText().substring(0, element.ownText().length() - 1);
-
-                    if (folderName.substring(0, 1).matches("[0-9]")) {
-                        movieFolders.add(company.getName() + "/000.All/" + folderName);
-                    }
-                }
-            }
-
-            Iterable<Movie> movies = movieRepository.findAll();
-
-            for (Movie movie : movies) {
-                if (movie.getReleasedate() != null) {
-                    String companyName = null;
-                    String title_cn = "";
-
-                    if (movie.getMovie_companies() != null) {
-                        Set<Movie_company> movie_companies = movie.getMovie_companies();
-                        for (Movie_company movie_company : movie_companies) {
-                            if (movie_company.getPreferred() == 1) {
-                                companyName = movie_company.getCompany().getName();
-                            }
+                String title_cn = "";
+                if (movie.getAkatitles() != null) {
+                    Set<Akatitle> akatitles = movie.getAkatitles();
+                    for (Akatitle akatitle : akatitles) {
+                        if (akatitle.getLanguage().equals("Chinese")) {
+                            title_cn = akatitle.getTitle();
                         }
                     }
-
-                    if (movie.getAkatitles() != null) {
-                        Set<Akatitle> akatitles = movie.getAkatitles();
-                        for (Akatitle akatitle : akatitles) {
-                            if (akatitle.getLanguage().equals("Chinese")) {
-                                title_cn = akatitle.getTitle();
-                            }
-                        }
-                    }
-
-                    String path = companyName + "/000.All/"
-                            + movie.getReleasedate().toString().replace("-", ".") + "."
-                            + movie.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ")
-                            + "【" + title_cn + "】";
-                    if (movieFolders.contains(path)) {
-                        movieFolders.remove(path);
-                        movie.setVideo(1);
-                    } else {
-                        movie.setVideo(0);
-                    }
-
-                    movieRepository.save(movie);
                 }
-            }
 
-            for (String movieFolder : movieFolders) {
-                System.out.println("Video: no movie matches " + movieFolder);
+                String path = companyName + "/000.All/"
+                        + movie.getReleasedate().toString().replace("-", ".") + "."
+                        + movie.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ")
+                        + "【" + title_cn + "】";
+                if (movieFolders.contains(path)) {
+                    movieFolders.remove(path);
+                    movie.setVideo(1);
+                } else {
+                    movie.setVideo(0);
+                }
+
+                movieRepository.save(movie);
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        }
+
+        for (String movieFolder : movieFolders) {
+            System.out.println("Video: no movie matches " + movieFolder);
         }
     }
 

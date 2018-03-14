@@ -27,8 +27,7 @@ public class UpdaterPoster {
     public boolean updatePosterOnce(Poster poster) {
         try {
             String posterUrl = poster.getImageurl();
-            Response resp;
-            resp = Jsoup.connect(posterUrl).ignoreContentType(true).maxBodySize(0).execute();
+            Response resp = Jsoup.connect(posterUrl).ignoreContentType(true).maxBodySize(0).execute();
 
             Blob blob = new SerialBlob(resp.bodyAsBytes());
 
