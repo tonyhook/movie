@@ -192,17 +192,19 @@
       $.get(dataUrl, function(movielistresult, status) {
         movielist = movielistresult;
         index = new Array(movielist.length);
-        var audio = 0, video = 0;
+        var album = 0, audio = 0, video = 0;
         for (var i = 0; i < movielist.length; i++)
         {
           index[i] = i;
-          if (movielist[i].audio > 0)
-            audio += movielist[i].audio;
+          if (movielist[i].audio > 0) {
+            album += movielist[i].audio;
+            audio++;
+          }
           if (movielist[i].video == 1)
             video++;
         }
         document.getElementById("counter").textContent = "总电影数： " + movielist.length;
-        document.getElementById("audio").textContent = "电影原声数： " + audio;
+        document.getElementById("audio").textContent = "电影原声数： " + audio + "/" + album;
         document.getElementById("video").textContent = "电影视频数： " + video;
         filltable();
       });
