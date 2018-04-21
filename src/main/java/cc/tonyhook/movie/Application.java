@@ -11,11 +11,12 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 @SpringBootApplication
 @EnableScheduling
@@ -58,5 +59,10 @@ public class Application {
 
     public static void main(String[] args) throws Exception {
         ctx = SpringApplication.run(Application.class, args);
+    }
+
+    @Bean
+    public ShallowEtagHeaderFilter shallowEtagHeaderFilter() {
+        return new ShallowEtagHeaderFilter();
     }
 }
