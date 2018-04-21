@@ -348,8 +348,9 @@ public class MovieController {
             Movie_source existedMovie_source = movie_sources.get(0);
             existedMovie_source.setOfficialsite(newMovie_source.getOfficialsite());
             existedMovie_source.setPoster(newMovie_source.getPoster());
-            existedMovie_source.setReleasedate(newMovie_source.getReleasedate());
             existedMovie_source.setTitle(newMovie_source.getTitle());
+            if (newMovie_source.getReleasedate() != null)
+                existedMovie_source.setReleasedate(newMovie_source.getReleasedate());
             movie_sourceRepository.save(existedMovie_source);
 
             if ((existedMovie_source.getMovieid() != null) && (existedMovie_source.getPoster() != null)
