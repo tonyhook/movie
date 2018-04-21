@@ -32,7 +32,7 @@ public class UpdaterImdb {
 
     public boolean updateImdbOnce(Imdb imdb) {
         try {
-            String imdbUrl = "http://www.imdb.com/title/" + imdb.getImdb() + "/";
+            String imdbUrl = "https://www.imdb.com/title/" + imdb.getImdb() + "/";
             String title = "";
             String releaseDate = "";
             String posterUrl = "";
