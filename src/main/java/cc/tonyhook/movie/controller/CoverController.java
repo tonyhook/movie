@@ -23,7 +23,7 @@ public class CoverController {
     @Autowired
     private CoverimgRepository coverimgRepository;
 
-    @RequestMapping(value = "/movie/cover/{movieid}/{title}", method = RequestMethod.GET)
+    @RequestMapping(value = "/movie/cover/{movieid}/{title:.+}", method = RequestMethod.GET)
     public @ResponseBody String getCover(@PathVariable("movieid") int movieid,
             @PathVariable("title") String title, HttpServletResponse response) {
         try {
