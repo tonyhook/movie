@@ -37,8 +37,8 @@ public class UpdaterImdb {
             String releaseDate = "";
             String posterUrl = "";
             String oldPosterUrl = "";
-            if (imdbRepository.findOne(imdb.getImdb()) != null)
-                oldPosterUrl = imdbRepository.findOne(imdb.getImdb()).getPoster();
+            if (imdbRepository.findById(imdb.getImdb()).orElse(null) != null)
+                oldPosterUrl = imdbRepository.findById(imdb.getImdb()).orElse(null).getPoster();
 
             URLConnection connection = new URL(imdbUrl).openConnection();
             connection.addRequestProperty("Accept-Language", "en-US");
@@ -102,7 +102,7 @@ public class UpdaterImdb {
                 }
             }
 
-            if (imdbRepository.findOne(imdb.getImdb()) == null) {
+            if (imdbRepository.findById(imdb.getImdb()).orElse(null) == null) {
                 imdbRepository.save(imdb);
 
                 if (posterUrl.length() > 0) {

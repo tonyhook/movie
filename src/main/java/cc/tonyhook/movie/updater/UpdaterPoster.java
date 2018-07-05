@@ -74,7 +74,7 @@ public class UpdaterPoster {
         Iterable<Poster> posters = posterRepository.findAll();
 
         for (Poster poster : posters) {
-            if (posterimgRepository.findOne(poster.getIdposter()) == null) {
+            if (posterimgRepository.findById(poster.getIdposter()).orElse(null) == null) {
                 updatePoster(poster);
             }
         }

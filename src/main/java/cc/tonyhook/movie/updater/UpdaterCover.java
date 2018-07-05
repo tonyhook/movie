@@ -44,7 +44,7 @@ public class UpdaterCover {
 
     public boolean updateCoverOnce(Album album) {
         try {
-            Movie movie = movieRepository.findOne(album.getMovieid());
+            Movie movie = movieRepository.findById(album.getMovieid()).orElse(null);
 
             String companyName = null;
             if (movie.getMovie_companies() != null) {
@@ -100,7 +100,7 @@ public class UpdaterCover {
             Iterable<Album> albums = albumRepository.findAll();
     
             for (Album album : albums) {
-                if (coverimgRepository.findOne(album.getIdalbum()) == null) {
+                if (coverimgRepository.findById(album.getIdalbum()).orElse(null) == null) {
                     updateCover(album);
                 }
             }

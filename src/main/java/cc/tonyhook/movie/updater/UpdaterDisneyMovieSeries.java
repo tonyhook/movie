@@ -41,7 +41,7 @@ public class UpdaterDisneyMovieSeries {
     final String SOURCE_DISNEY_STARWARS = "Star Wars";
 
     private void updateDisneyMovieSeriesByName(String name) {
-        int idsource = 0;
+        Integer idsource = 0;
         String url = "";
 
         Iterable<Source> sources = sourceRepository.findAll();
@@ -79,7 +79,7 @@ public class UpdaterDisneyMovieSeries {
                                     || movieList.get("stack").get(i).get("view").asText().equals("featured_movie"))) {
                                 JsonNode movie = movieList.get("stack").get(i).get("data").get(j);
                                 Movie_source movie_source = new Movie_source();
-                                movie_source.setSource(sourceRepository.findOne(idsource));
+                                movie_source.setSource(sourceRepository.findById(idsource).orElse(null));
                                 movie_source.setTitle(movie.get("title").asText());
                                 movie_source.setOfficialid(movie.get("id").asText());
                                 movie_source.setOfficialsite(movie.get("href").asText());

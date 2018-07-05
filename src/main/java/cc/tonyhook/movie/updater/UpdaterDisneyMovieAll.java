@@ -31,7 +31,7 @@ public class UpdaterDisneyMovieAll {
     public void UpdateDisneyMovieAll() {
         int offset = 0;
         int lengthReturned = 1;
-        int idsource = 0;
+        Integer idsource = 0;
 
         Iterable<Source> sources = sourceRepository.findAll();
         for (Source source : sources) {
@@ -58,7 +58,7 @@ public class UpdaterDisneyMovieAll {
                 for (int i = 0; i < lengthReturned; i++) {
                     JsonNode movie = movieList.get(i);
                     Movie_source movie_source = new Movie_source();
-                    movie_source.setSource(sourceRepository.findOne(idsource));
+                    movie_source.setSource(sourceRepository.findById(idsource).orElse(null));
                     movie_source.setTitle(movie.get("title").asText());
                     movie_source.setOfficialid(movie.get("id").asText());
                     movie_source.setOfficialsite(movie.get("href").asText());
@@ -102,7 +102,7 @@ public class UpdaterDisneyMovieAll {
                     for (int i = 0; i < lengthReturned; i++) {
                         JsonNode movie = movieList.get(i);
                         Movie_source movie_source = new Movie_source();
-                        movie_source.setSource(sourceRepository.findOne(idsource));
+                        movie_source.setSource(sourceRepository.findById(idsource).orElse(null));
                         movie_source.setTitle(movie.get("title").asText());
                         movie_source.setOfficialid(movie.get("id").asText());
                         movie_source.setOfficialsite(movie.get("href").asText());

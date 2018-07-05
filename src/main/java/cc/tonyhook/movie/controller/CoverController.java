@@ -1,11 +1,13 @@
 package cc.tonyhook.movie.controller;
 
-import java.io.OutputStream;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,26 +26,25 @@ public class CoverController {
     private CoverimgRepository coverimgRepository;
 
     @RequestMapping(value = "/movie/cover/{movieid}/{title:.+}", method = RequestMethod.GET)
-    public @ResponseBody String getCover(@PathVariable("movieid") int movieid,
-            @PathVariable("title") String title, HttpServletResponse response) {
+    public @ResponseBody ResponseEntity<byte[]> getCover(@PathVariable("movieid") Integer movieid,
+            @PathVariable("title") String title) {
         try {
             List<Album> a = albumRepository.findAllByMovieidAndTitle(movieid, title);
 
-            if ((a == null) || (coverimgRepository.findOne(a.get(0).getIdalbum()) == null)) {
-                response.setStatus(404);
+            if ((a.size() == 0) || (coverimgRepository.findById(a.get(0).getIdalbum()).orElse(null) == null)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             } else {
-                response.setHeader("Content-Disposition", "inline;filename=\"" + title + ".jpg\"");
-                OutputStream out = response.getOutputStream();
-                response.setContentType("image/jpeg");
-                IOUtils.copy(coverimgRepository.findOne(a.get(0).getIdalbum()).getImage().getBinaryStream(), out);
-                out.flush();
-                out.close();
+                byte[] media = IOUtils.toByteArray(coverimgRepository.findById(a.get(0).getIdalbum()).orElse(null).getImage().getBinaryStream());
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(MediaType.IMAGE_JPEG_VALUE));
+                headers.setContentDisposition(ContentDisposition.builder("inline").filename(title + ".jpg").build());
+
+                return new ResponseEntity<>(media, headers, HttpStatus.OK);
             }
         } catch (Exception e) {
-            response.setStatus(500);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        return null;
     }
 
 }

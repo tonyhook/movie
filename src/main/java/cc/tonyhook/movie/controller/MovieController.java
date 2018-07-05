@@ -1,8 +1,8 @@
 package cc.tonyhook.movie.controller;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -13,13 +13,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,7 +75,7 @@ public class MovieController {
     private UpdaterImdb updaterImdb;
 
     @RequestMapping(value = "/movie/movie/company/{name}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody Iterable<MovieGeneralInfo> getMovieByCompany(@PathVariable("name") String name) {
+    public @ResponseBody ResponseEntity<Iterable<MovieGeneralInfo>> getMovieByCompany(@PathVariable("name") String name) {
         ArrayList<MovieGeneralInfo> movieGeneralInfos = new ArrayList<MovieGeneralInfo>();
 
         Iterable<Movie> movies = movieRepository.findAllByOrderByReleasedateAsc();
@@ -85,7 +87,6 @@ public class MovieController {
                 for (Movie_company movie_company : movie_companies) {
                     if (movie_company.getCompany().getName().equals(name)) {
                         companyIsMatched = true;
-                        ;
                     }
                 }
             }
@@ -128,12 +129,14 @@ public class MovieController {
             movieGeneralInfos.add(movieGeneralInfo);
         }
 
-        return movieGeneralInfos;
+        return new ResponseEntity<Iterable<MovieGeneralInfo>>(movieGeneralInfos, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/movie/movie/{idmovie}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody Movie getMovieById(@PathVariable("idmovie") Integer idmovie) {
-        Movie movie = movieRepository.findOne(idmovie);
+    public @ResponseBody ResponseEntity<Movie> getMovieById(@PathVariable("idmovie") Integer idmovie) {
+        Movie movie = movieRepository.findById(idmovie).orElse(null);
+        if (movie == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
         if (movie.getImdb() != null) {
             String posterUrl = movie.getImdb().getPoster();
@@ -155,21 +158,25 @@ public class MovieController {
             }
         }
 
-        return movie;
+        return new ResponseEntity<Movie>(movie, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/movie/movie/{idmovie}", method = RequestMethod.POST, consumes = "application/json; charset=UTF-8")
-    public ResponseEntity<?> setMovieById(@PathVariable("idmovie") Integer idmovie,
+    public @ResponseBody ResponseEntity<Movie> setMovieById(@PathVariable("idmovie") Integer idmovie,
             @RequestBody MovieGeneralInfo input) {
         if (!idmovie.equals(input.getIdmovie())) {
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Movie movie = movieRepository.findOne(input.getIdmovie());
+        Movie movie = movieRepository.findById(input.getIdmovie()).orElse(null);
+        if (movie == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
         movie.setTitle(input.getTitle_en());
         movie.setReleasedate(input.getReleasedate());
 
-        Imdb imdb = imdbRepository.findOne(input.getImdb());
+        Imdb imdb = imdbRepository.findById(input.getImdb()).orElse(null);
         if (imdb != null) {
             movie.setImdb(imdb);
         }
@@ -213,7 +220,7 @@ public class MovieController {
         }
 
         for (Integer companyid : companies) {
-            Company company = companyRepository.findOne(companyid);
+            Company company = companyRepository.findById(companyid).orElse(null);
             Movie_company movie_company = new Movie_company();
             movie_company.setMovieid(input.getIdmovie());
             movie_company.setCompany(company);
@@ -225,7 +232,7 @@ public class MovieController {
             movie_companyRepository.save(movie_company);
         }
 
-        return ResponseEntity.noContent().build();
+        return new ResponseEntity<Movie>(movie, HttpStatus.OK);
     }
 
     private boolean shouldIgnore(String word) {
@@ -254,7 +261,7 @@ public class MovieController {
     }
 
     @RequestMapping(value = "/movie/movie/find/{keywords:.+}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody Iterable<Movie> findMovie(@PathVariable("keywords") String keywords) {
+    public @ResponseBody ResponseEntity<Iterable<Movie>> findMovie(@PathVariable("keywords") String keywords) {
         Iterable<Movie> movies = movieRepository.findAll();
 
         String[] words = keywords.replace("/", " ").replace("-", " ").replace("·", " ").split(" ");
@@ -271,23 +278,26 @@ public class MovieController {
                 possibleMovies.add(movie);
         }
 
-        return possibleMovies;
+        return new ResponseEntity<Iterable<Movie>>(possibleMovies, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/movie/movie/orphan", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody Iterable<Movie_source> getOrphanMovie() {
+    public @ResponseBody ResponseEntity<Iterable<Movie_source>> getOrphanMovie() {
         Iterable<Movie_source> movie_sources = movie_sourceRepository.findAllByMovieidIsNull();
 
-        return movie_sources;
+        return new ResponseEntity<Iterable<Movie_source>>(movie_sources, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/movie/movie/merge/{idmovie_source}/{idmovie}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
     public @ResponseBody ResponseEntity<?> mergeMovie(@PathVariable("idmovie_source") Integer idmovie_source,
             @PathVariable("idmovie") Integer idmovie) {
-        Movie_source movie_source = movie_sourceRepository.findOne(idmovie_source);
-        
+        Movie_source movie_source = movie_sourceRepository.findById(idmovie_source).orElse(null);
+        if (movie_source == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
         if (movie_source.getMovieid() != null)
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         movie_source.setMovieid(idmovie);
         movie_sourceRepository.save(movie_source);
@@ -304,15 +314,18 @@ public class MovieController {
             }
         }
 
-        return ResponseEntity.noContent().build();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(value = "/movie/movie/new/{idmovie_source}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<?> newMovie(@PathVariable("idmovie_source") Integer idmovie_source) {
-        Movie_source movie_source = movie_sourceRepository.findOne(idmovie_source);
+    public @ResponseBody ResponseEntity<Movie> newMovie(@PathVariable("idmovie_source") Integer idmovie_source) {
+        Movie_source movie_source = movie_sourceRepository.findById(idmovie_source).orElse(null);
+        if (movie_source == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
         if (movie_source.getMovieid() != null)
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         Movie movie = new Movie();
         movie.setTitle(movie_source.getTitle());
@@ -333,7 +346,7 @@ public class MovieController {
             }
         }
 
-        return ResponseEntity.noContent().build();
+        return new ResponseEntity<Movie>(movie, HttpStatus.OK);
     }
 
     private String getQualifiedMovieName(String title) {
@@ -369,17 +382,15 @@ public class MovieController {
     }
 
     @RequestMapping(value = "/movie/movie/manualupdate/{idsource}", method = RequestMethod.GET)
-    public void downloadMovieList(@PathVariable("idsource") Integer idsource, HttpServletResponse response) {
+    public @ResponseBody ResponseEntity<byte[]> downloadMovieList(@PathVariable("idsource") Integer idsource) {
         try {
-            response.setHeader("Content-Disposition", "attachment;filename=\"" + String.valueOf(idsource) + ".csv\"");
-            response.setContentType("application/vnd.ms-excel");
-            OutputStream out = response.getOutputStream();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             CSVPrinter csvPrinter = new CSVPrinter(new OutputStreamWriter(out),
                     CSVFormat.DEFAULT.withHeader("title", "officialid", "officialsite", "poster", "releasedate"));
             DateFormat dt = DateFormat.getDateInstance(DateFormat.LONG, Locale.US);
 
             List<Movie_source> movie_sources = movie_sourceRepository
-                    .findAllBySource(sourceRepository.findOne(idsource));
+                    .findAllBySource(sourceRepository.findById(idsource).orElse(null));
             for (Movie_source movie_source : movie_sources) {
                 String releasedate = "";
                 if (movie_source.getReleasedate() != null)
@@ -392,15 +403,22 @@ public class MovieController {
 
             out.flush();
             out.close();
+
+            byte[] media = out.toByteArray();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+            headers.setContentDisposition(ContentDisposition.builder("attachment").filename(String.valueOf(idsource) + ".csv").build());
+
+            return new ResponseEntity<>(media, headers, HttpStatus.OK);
         } catch (IOException e) {
-            response.setStatus(500);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @RequestMapping(value = "/movie/movie/manualupdate", method = RequestMethod.POST, consumes = "multipart/form-data")
     public ResponseEntity<?> uploadMovieList(@RequestParam("idsource") Integer idsource,
-            @RequestParam("action") String action, @RequestParam("file") MultipartFile file,
-            HttpServletResponse response) {
+            @RequestParam("action") String action, @RequestParam("file") MultipartFile file) {
         if (action.equals("upload")) {
             try {
                 CSVParser records = CSVFormat.DEFAULT.withHeader().parse(new InputStreamReader(file.getInputStream()));
@@ -409,7 +427,7 @@ public class MovieController {
                     CSVRecord record = csvRecords.get(i);
 
                     Movie_source movie_source = new Movie_source();
-                    movie_source.setSource(sourceRepository.findOne(idsource));
+                    movie_source.setSource(sourceRepository.findById(idsource).orElse(null));
                     if (record.get("officialid").length() == 0)
                         movie_source.setOfficialid(getQualifiedMovieName(record.get("title")));
                     else
@@ -430,11 +448,11 @@ public class MovieController {
                     newMovie_source(movie_source);
                 }
             } catch (IOException e) {
-                response.setStatus(500);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
 
-        return ResponseEntity.noContent().build();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

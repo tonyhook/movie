@@ -25,7 +25,7 @@ public class UpdaterMoviesAnywhere {
 
     @Scheduled(fixedRate = 86400000, initialDelay = 3600000)
     public void UpdateMoviesAnywhere() {
-        int idsource = 0;
+        Integer idsource = 0;
 
         Iterable<Source> sources = sourceRepository.findAll();
         for (Source source : sources) {
@@ -57,7 +57,7 @@ public class UpdaterMoviesAnywhere {
             for (int i = 0; i < movieList.get("paginatedItems").size(); i++) {
                 JsonNode movie = movieList.get("paginatedItems").get(i);
                 Movie_source movie_source = new Movie_source();
-                movie_source.setSource(sourceRepository.findOne(idsource));
+                movie_source.setSource(sourceRepository.findById(idsource).orElse(null));
                 movie_source.setTitle(movie.get("title").asText());
                 movie_source.setOfficialid(movie.get("id").asText());
                 if ((movie.get("primaryAction") != null) && (movie.get("primaryAction").get("target") != null)

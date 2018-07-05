@@ -27,7 +27,7 @@ public class UpdaterDisneyMoviesAnywhere {
 
     @Scheduled(fixedRate = 86400000, initialDelay = 3600000)
     public void UpdateDisneyMoviesAnywhere() {
-        int idsource = 0;
+        Integer idsource = 0;
 
         Iterable<Source> sources = sourceRepository.findAll();
         for (Source source : sources) {
@@ -58,7 +58,7 @@ public class UpdaterDisneyMoviesAnywhere {
                 for (int i = 0; i < movieList.get("items").size(); i++) {
                     JsonNode movie = movieList.get("items").get(i);
                     Movie_source movie_source = new Movie_source();
-                    movie_source.setSource(sourceRepository.findOne(idsource));
+                    movie_source.setSource(sourceRepository.findById(idsource).orElse(null));
                     movie_source.setTitle(movie.get("title").asText());
                     movie_source.setOfficialid(movie.get("guid").asText());
                     movie_source.setOfficialsite(movie.get("action").asText());
