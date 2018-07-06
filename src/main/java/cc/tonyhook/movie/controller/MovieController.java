@@ -75,7 +75,7 @@ public class MovieController {
     private UpdaterImdb updaterImdb;
 
     @RequestMapping(value = "/movie/movie/company/{name}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody ResponseEntity<Iterable<MovieGeneralInfo>> getMovieByCompany(@PathVariable("name") String name) {
+    public @ResponseBody ResponseEntity<Iterable<MovieGeneralInfo>> listMovieByCompany(@PathVariable("name") String name) {
         ArrayList<MovieGeneralInfo> movieGeneralInfos = new ArrayList<MovieGeneralInfo>();
 
         Iterable<Movie> movies = movieRepository.findAllByOrderByReleasedateAsc();
@@ -133,7 +133,7 @@ public class MovieController {
     }
 
     @RequestMapping(value = "/movie/movie/{idmovie}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody ResponseEntity<Movie> getMovieById(@PathVariable("idmovie") Integer idmovie) {
+    public @ResponseBody ResponseEntity<Movie> getMovie(@PathVariable("idmovie") Integer idmovie) {
         Movie movie = movieRepository.findById(idmovie).orElse(null);
         if (movie == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -162,7 +162,7 @@ public class MovieController {
     }
 
     @RequestMapping(value = "/movie/movie/{idmovie}", method = RequestMethod.POST, consumes = "application/json; charset=UTF-8")
-    public @ResponseBody ResponseEntity<Movie> setMovieById(@PathVariable("idmovie") Integer idmovie,
+    public @ResponseBody ResponseEntity<Movie> setMovie(@PathVariable("idmovie") Integer idmovie,
             @RequestBody MovieGeneralInfo input) {
         if (!idmovie.equals(input.getIdmovie())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -282,7 +282,7 @@ public class MovieController {
     }
 
     @RequestMapping(value = "/movie/movie/orphan", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody ResponseEntity<Iterable<Movie_source>> getOrphanMovie() {
+    public @ResponseBody ResponseEntity<Iterable<Movie_source>> listOrphanMovie() {
         Iterable<Movie_source> movie_sources = movie_sourceRepository.findAllByMovieidIsNull();
 
         return new ResponseEntity<Iterable<Movie_source>>(movie_sources, HttpStatus.OK);

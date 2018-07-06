@@ -17,7 +17,7 @@ public class CompanyController {
     private CompanyRepository companyRepository;
 
     @RequestMapping(value = "/movie/company/list", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody ResponseEntity<Iterable<Company>> getCompanies() {
+    public @ResponseBody ResponseEntity<Iterable<Company>> listCompanies() {
         Iterable<Company> companies = companyRepository.findAll();
 
         for (Company company : companies) {

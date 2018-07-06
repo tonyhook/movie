@@ -17,7 +17,7 @@ public class SourceController {
     private SourceRepository sourceRepository;
 
     @RequestMapping(value = "/movie/source/list", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public @ResponseBody ResponseEntity<Iterable<Source>> getSources() {
+    public @ResponseBody ResponseEntity<Iterable<Source>> listSources() {
         Iterable<Source> sources = sourceRepository.findAllByOrderByNameAsc();
 
         for (Source source : sources) {
