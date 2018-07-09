@@ -1,0 +1,489 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="common.css" type="text/css" />
+  <script src="jquery-3.1.0.js" type="text/javascript"></script>
+  <title>专辑数据编辑</title>
+</head>
+
+<body>
+  <div class="title">专辑数据编辑</div>
+  <table class="normal" id="detail">
+    <tr class="noborder">
+      <td class="topic" colspan="2">基本信息
+        <div style="display: inline; position: relative; left: 700px;">
+          <button id="submit" onclick="submit()">修改</button>
+        </div>
+      </td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">专辑名称</th>
+      <td class="noborder">
+        <input type="text" id="title" value="" />
+      </td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">发行日期</th>
+      <td class="noborder">
+        <input type="text" id="releasedate" value="" />
+      </td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">列表日期</th>
+      <td class="noborder">
+        <input type="text" id="listdate" value="" />
+      </td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">厂牌</th>
+      <td class="noborder">
+        <input type="text" id="label" value="" />
+      </td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">编号</th>
+      <td class="noborder">
+        <input type="text" id="cat" value="" />
+      </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">类别</th>
+        <td class="noborder">
+          <input type="text" id="genre" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">盘数</th>
+        <td class="noborder">
+          <input type="text" id="disc" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">区域</th>
+        <td class="noborder">
+          <input type="text" id="region" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">数字</th>
+        <td class="noborder">
+          <input type="text" id="digital" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">条码</th>
+        <td class="noborder">
+          <input type="text" id="barcode" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">Discogs</th>
+        <td class="noborder">
+          <input type="text" id="discogsID" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">ASIN</th>
+        <td class="noborder">
+          <input type="text" id="asin" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">状态</th>
+        <td class="noborder">
+          <input type="text" id="status" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+        <th class="noborder">关联影片</th>
+        <td class="noborder">
+          <input type="text" id="movieid" value="" />
+        </td>
+    </tr>
+    <tr class="noborder">
+      <td class="topic" colspan="2">专辑封面</td>
+    </tr>
+    <tr class="noborder">
+      <td class="noborder" colspan="2" id="cover"></td>
+    </tr>
+    <tr class="noborder">
+      <td class="topic" colspan="2">专辑曲目</td>
+    </tr>
+  </table>
+  <script type="text/javascript" charset="utf-8">
+    var idalbum = null;
+    var covers = null;
+    var tracks = null;
+
+    function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    }
+
+    function transformToAssocArray(prmstr) {
+      var params = {};
+      var prmarr = prmstr.split("&");
+      for (var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+      }
+      return params;
+    }
+
+    function getCookie(c_name)
+    {
+      if (document.cookie.length > 0) {
+        c_start=document.cookie.indexOf(c_name + "=");
+        if (c_start != -1) { 
+          c_start = c_start + c_name.length + 1; 
+          c_end = document.cookie.indexOf(";", c_start);
+          if (c_end == -1)
+            c_end = document.cookie.length;
+          return unescape(document.cookie.substring(c_start,c_end));
+        }
+      }
+      return "";
+    }
+
+    function removeDragData(ev) {
+      console.log('Removing drag data')
+
+      if (ev.dataTransfer.items) {
+        // Use DataTransferItemList interface to remove the drag data
+        ev.dataTransfer.items.clear();
+      } else {
+        // Use DataTransfer interface to remove the drag data
+        ev.dataTransfer.clearData();
+      }
+    }
+
+    function dropHandler(ev) {
+      console.log('File(s) dropped');
+
+      // Prevent default behavior (Prevent file from being opened)
+      ev.preventDefault();
+
+      if (ev.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+          // If dropped items aren't files, reject them
+          if (ev.dataTransfer.items[i].kind === 'file') {
+            var file = ev.dataTransfer.items[i].getAsFile();
+            console.log('... file[' + i + '].name = ' + file.name);
+
+            addCover(file);
+          }
+        }
+      } else {
+        // Use DataTransfer interface to access the file(s)
+        for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+          console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+        }
+      } 
+
+      // Pass event to removeDragData for cleanup
+      removeDragData(ev);
+    }
+
+    function dragOverHandler(ev) {
+      console.log('File(s) in drop zone'); 
+
+      // Prevent default behavior (Prevent file from being opened)
+      ev.preventDefault();
+    }
+
+    function addCover(file) {
+      var maxSequence = 0;
+      covers.forEach(function (cover) {
+        if (maxSequence < cover.sequence)
+          maxSequence = cover.sequence;
+      });
+
+      var data = new FormData();
+
+      maxSequence = maxSequence + 1;
+      var newCover = {albumid: idalbum, sequence: maxSequence};
+      data.append("cover",
+          new Blob([JSON.stringify(newCover)], {type: "application/json"}));
+      data.append("file", file);
+
+      var xmlobj = new XMLHttpRequest();
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 403) {
+            window.location = "/login.html";
+          }
+          if (xmlobj.status === 200) {
+            covers = JSON.parse(xmlobj.responseText);
+            drawCovers();
+          }
+        }
+      };
+      xmlobj.open("PUT", "cover");
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.send(data);
+    }
+
+    function removeCover(idcover) {
+      var xmlobj = new XMLHttpRequest();
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 403) {
+            window.location = "/login.html";
+          }
+          if (xmlobj.status === 200) {
+            covers = JSON.parse(xmlobj.responseText);
+            drawCovers();
+          }
+        }
+      };
+      xmlobj.open("DELETE", "cover/" + idcover);
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.send();
+    }
+
+    function upCover(idcover, sequence) {
+      if (sequence == 1)
+        return;
+
+      var data = new FormData();
+
+      var newCover = {idcover: idcover, albumid: idalbum, sequence: sequence - 1};
+      data.append("cover",
+          new Blob([JSON.stringify(newCover)], {type: "application/json"}));
+
+      var xmlobj = new XMLHttpRequest();
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 403) {
+            window.location = "/login.html";
+          }
+          if (xmlobj.status === 200) {
+            covers = JSON.parse(xmlobj.responseText);
+            drawCovers();
+          }
+        }
+      };
+      xmlobj.open("POST", "cover/" + idcover);
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.send(data);
+    }
+
+    function downCover(idcover, sequence) {
+      var data = new FormData();
+
+      var newCover = {idcover: idcover, albumid: idalbum, sequence: sequence + 2};
+      data.append("cover",
+          new Blob([JSON.stringify(newCover)], {type: "application/json"}));
+
+      var xmlobj = new XMLHttpRequest();
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 403) {
+            window.location = "/login.html";
+          }
+          if (xmlobj.status === 200) {
+            covers = JSON.parse(xmlobj.responseText);
+            drawCovers();
+          }
+        }
+      };
+      xmlobj.open("POST", "cover/" + idcover);
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.send(data);
+    }
+
+    function drawCovers()
+    {
+      var td_cover = document.getElementById("cover");
+
+      while (td_cover.firstChild != null)
+        td_cover.removeChild(td_cover.firstChild);
+
+      for (var i = 0; i < covers.length - 1; i++)
+        for (var j = i + 1; j < covers.length; j++)
+          if (covers[i].sequence > covers[j].sequence) {
+            var swap = covers[i];
+            covers[i] = covers[j];
+            covers[j] = swap;
+          }
+
+      covers.forEach(function (cover) {
+        var div_cover = document.createElement("div");
+        div_cover.id = "cover." + cover.sequence;
+        div_cover.style = "float: left;";
+
+        var div_img = document.createElement("div");
+        var img = document.createElement("img");
+        img.style = "padding: 5px; height: 200px;";
+        img.src = "cover/" + cover.idcover;
+        div_img.appendChild(img);
+
+        var div_remove = document.createElement("div");
+        div_remove.className = "sticky-middle-album";
+        var img = document.createElement("img");
+        img.style = "height: 50px; background-color: white;";
+        img.src = "img/remove.png";
+        img.addEventListener("click", function() {
+          removeCover(cover.idcover);
+        });
+        div_remove.appendChild(img);
+
+        var div_up = document.createElement("div");
+        div_up.className = "sticky-left-album";
+        var img = document.createElement("img");
+        img.style = "height: 50px; background-color: white;";
+        img.src = "img/left.png";
+        img.addEventListener("click", function() {
+          upCover(cover.idcover, cover.sequence);
+        });
+        div_up.appendChild(img);
+
+        var div_down = document.createElement("div");
+        div_down.className = "sticky-right-album";
+        var img = document.createElement("img");
+        img.style = "height: 50px; background-color: white;";
+        img.src = "img/right.png";
+        img.addEventListener("click", function() {
+          downCover(cover.idcover, cover.sequence);
+        });
+        div_down.appendChild(img);
+
+        div_cover.appendChild(div_img);
+        div_cover.appendChild(div_remove);
+        div_cover.appendChild(div_up);
+        div_cover.appendChild(div_down);
+        td_cover.appendChild(div_cover);
+      });
+
+      var div_cover = document.createElement("div");
+      div_cover.id = "cover.new";
+      div_cover.style = "float: left;";
+      var div_img = document.createElement("div");
+      var img = document.createElement("img");
+      img.style = "padding: 55px; height: 100px;";
+      img.src = "img/add.png";
+      div_img.appendChild(img);
+      div_cover.appendChild(div_img);
+      div_cover.ondrop = dropHandler;
+      div_cover.ondragover = dragOverHandler;
+      td_cover.appendChild(div_cover);
+    }
+
+    function submit() {
+      document.getElementById("submit").disabled = true;
+      var params = getSearchParameters();
+      var idalbum = params["idalbum"] ? params["idalbum"] : "1";
+      var dataUrl = params["idalbum"] ? "album/" + idalbum : "album/1";
+      var album = {
+        idalbum: idalbum,
+        title: document.getElementById("title").value != "" ? document.getElementById("title").value : null,
+        releasedate: document.getElementById("releasedate").value != "" ? document.getElementById("releasedate").value : null,
+        listdate: document.getElementById("listdate").value != "" ? document.getElementById("listdate").value : null,
+        label: document.getElementById("label").value != "" ? document.getElementById("label").value : null,
+        cat: document.getElementById("cat").value != "" ? document.getElementById("cat").value : null,
+        genre: document.getElementById("genre").value != "" ? document.getElementById("genre").value : null,
+        disc: document.getElementById("disc").value != "" ? document.getElementById("disc").value : null,
+        region: document.getElementById("region").value != "" ? document.getElementById("region").value : null,
+        digital: document.getElementById("digital").value != "" ? document.getElementById("digital").value : null,
+        barcode: document.getElementById("barcode").value != "" ? document.getElementById("barcode").value : null,
+        discogsID: document.getElementById("discogsID").value != "" ? document.getElementById("discogsID").value : null,
+        asin: document.getElementById("asin").value != "" ? document.getElementById("asin").value : null,
+        status: document.getElementById("status").value != "" ? document.getElementById("status").value : null,
+        movieid: document.getElementById("movieid").value != "" ? document.getElementById("movieid").value : null,
+        covers: covers,
+        tracks: tracks
+      };
+      $.ajax({
+        type: "POST",
+        data: JSON.stringify(album),
+        url: dataUrl,
+        contentType: "application/json",
+        headers: {"Authorization": getCookie("token")},
+        success: function () {
+          document.getElementById("submit").disabled = false;
+        },
+        error: function (error) {
+          document.getElementById("submit").disabled = false;
+          document.getElementById("submit").innerText = "ERROR";
+          if (error.status == 403)
+            document.location = "/login.html";
+        }
+      });
+    }
+
+    $(function () {
+      if (document.cookie.indexOf("token=") == -1)
+        document.location = "/login.html";
+
+      var params = getSearchParameters();
+      idalbum = params["idalbum"] ? params["idalbum"] : "1";
+      var dataUrl = params["idalbum"] ? "album/" + idalbum : "album/1";
+
+      $.get(dataUrl, function (data, status) {
+        var text_title = document.getElementById("title");
+        text_title.value = data.title;
+
+        var text_releasedate = document.getElementById("releasedate");
+        if (data.releasedate != null)
+          text_releasedate.value = data.releasedate;
+
+        var text_listdate = document.getElementById("listdate");
+        if (data.listdate != null)
+          text_listdate.value = data.listdate;
+
+        var text_label = document.getElementById("label");
+        if (data.label != null)
+          text_label.value = data.label;
+
+        var text_cat = document.getElementById("cat");
+        if (data.cat != null)
+          text_cat.value = data.cat;
+
+        var text_genre = document.getElementById("genre");
+        if (data.genre != null)
+          text_genre.value = data.genre;
+
+        var text_disc = document.getElementById("disc");
+        if (data.disc != null)
+          text_disc.value = data.disc;
+
+        var text_region = document.getElementById("region");
+        if (data.region != null)
+          text_region.value = data.region;
+
+        var text_digital = document.getElementById("digital");
+        if (data.digital != null)
+        text_digital.value = data.digital;
+
+        var text_barcode = document.getElementById("barcode");
+        if (data.barcode != null)
+          text_barcode.value = data.barcode;
+
+        var text_discogsID = document.getElementById("discogsID");
+        if (data.discogsID != null)
+          text_discogsID.value = data.discogsID;
+
+        var text_asin = document.getElementById("asin");
+        if (data.asin != null)
+          text_asin.value = data.asin;
+
+        var text_status = document.getElementById("status");
+        if (data.status != null)
+          text_status.value = data.status;
+
+        var text_movieid = document.getElementById("movieid");
+        if (data.movieid != null)
+          text_movieid.value = data.movieid;
+
+        covers = data.covers;
+
+        drawCovers();
+      });
+    });
+  </script>
+</body>
+
+</html>

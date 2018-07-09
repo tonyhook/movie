@@ -1,6 +1,11 @@
 package cc.tonyhook.movie.controller;
 
+import java.sql.Blob;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import javax.sql.rowset.serial.SerialBlob;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
@@ -11,11 +16,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import cc.tonyhook.movie.domain.Album;
 import cc.tonyhook.movie.domain.AlbumRepository;
+import cc.tonyhook.movie.domain.Cover;
+import cc.tonyhook.movie.domain.CoverRepository;
+import cc.tonyhook.movie.domain.Coverimg;
 import cc.tonyhook.movie.domain.CoverimgRepository;
 
 @RestController
@@ -23,7 +33,202 @@ public class CoverController {
     @Autowired
     private AlbumRepository albumRepository;
     @Autowired
+    private CoverRepository coverRepository;
+    @Autowired
     private CoverimgRepository coverimgRepository;
+
+    @RequestMapping(value = "/music/cover/album/{albumid}", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<Iterable<Cover>> listCoverByAlbum(@PathVariable("albumid") Integer albumid) {
+        Album album = albumRepository.findById(albumid).orElse(null);
+        if (album == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Iterable<Cover> covers = coverRepository.findByAlbumidOrderBySequence(albumid);
+
+        return new ResponseEntity<Iterable<Cover>>(covers, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/music/cover/{idcover}", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<byte[]> getCover(@PathVariable("idcover") Integer idcover) {
+        Cover cover = coverRepository.findById(idcover).orElse(null);
+        if (cover == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Coverimg coverimg = coverimgRepository.findById(idcover).orElse(null);
+        if (coverimg == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        try {            
+            byte[] media = IOUtils.toByteArray(coverimg.getImage().getBinaryStream());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(MediaType.IMAGE_JPEG_VALUE));
+            headers.setContentDisposition(ContentDisposition.builder("inline").filename(String.valueOf(idcover) + ".jpg").build());
+
+            return new ResponseEntity<>(media, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+    private void resortSequence(Album album) {
+        if (album == null) {
+            return;
+        }
+
+        ArrayList<Integer> coverids = new ArrayList<Integer>();
+        ArrayList<Integer> coverseqs = new ArrayList<Integer>();
+        for (Cover cover: album.getCovers()) {
+            coverids.add(cover.getIdcover());
+            coverseqs.add(cover.getSequence());
+        }
+        for (int i = 0; i < coverids.size() - 1; i++)
+            for (int j = i + 1; j < coverids.size(); j++)
+                if (coverseqs.get(i) > coverseqs.get(j)) {
+                    Integer swap;
+                    swap = coverids.get(i);
+                    coverids.set(i, coverids.get(j));
+                    coverids.set(j, swap);
+                    swap = coverseqs.get(i);
+                    coverseqs.set(i, coverseqs.get(j));
+                    coverseqs.set(j, swap);
+                }
+        for (Cover cover: album.getCovers()) {
+            cover.setSequence(coverids.indexOf(cover.getIdcover()) + 1);
+            coverRepository.save(cover);
+        }
+
+        albumRepository.save(album);
+    }
+
+    private void makeWayForCover(Album album, Integer sequence) {
+        if (album == null) {
+            return;
+        }
+
+        for (Cover cover: album.getCovers()) {
+            if (cover.getSequence() >= sequence) {
+                cover.setSequence(cover.getSequence() + 1);
+                coverRepository.save(cover);
+            }
+        }
+
+        albumRepository.save(album);
+    }
+
+    @RequestMapping(value = "/music/cover/{idcover}", method = RequestMethod.POST, consumes = "multipart/form-data")
+    public @ResponseBody ResponseEntity<Set<Cover>> setCover(@PathVariable("idcover") Integer idcover,
+            @RequestPart(name = "cover") Cover input,
+            @RequestPart(name = "file", required = false) MultipartFile file) {
+        if (!idcover.equals(input.getIdcover())) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        Album album = albumRepository.findById(input.getAlbumid()).orElse(null);
+        if (album == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        Cover cover = null;
+
+        for (Cover existedCover : album.getCovers()) {
+            if (existedCover.getIdcover().equals(idcover))
+                cover = existedCover;
+        }
+
+        if (cover == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        makeWayForCover(album, input.getSequence());
+
+        cover.setSequence(input.getSequence());
+
+        try {
+            if (file != null) {
+                Blob blob = new SerialBlob(IOUtils.toByteArray(file.getInputStream()));
+
+                Coverimg coverimg = coverimgRepository.findById(idcover).orElse(null);
+                if (coverimg == null) {
+                    coverimg = new Coverimg();
+                    coverimg.setIdcoverimg(idcover);
+                }
+
+                coverimg.setImage(blob);
+
+                coverimgRepository.save(coverimg);
+            } else {
+                System.out.println("setCover: no cover submitted.");
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        coverRepository.save(cover);
+        albumRepository.save(album);
+        resortSequence(album);
+
+        return new ResponseEntity<Set<Cover>>(album.getCovers(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/music/cover", method = RequestMethod.PUT, consumes = "multipart/form-data")
+    public @ResponseBody ResponseEntity<Set<Cover>> addCover(@RequestPart(name = "cover") Cover input,
+            @RequestPart(name = "file", required = false) MultipartFile file) {
+        Album album = albumRepository.findById(input.getAlbumid()).orElse(null);
+        if (album == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        makeWayForCover(album, input.getSequence());
+
+        Cover cover = coverRepository.save(input);
+
+        try {
+            if (file != null) {
+                Blob blob = new SerialBlob(IOUtils.toByteArray(file.getInputStream()));
+
+                Coverimg coverimg = coverimgRepository.findById(cover.getIdcover()).orElse(null);
+                if (coverimg == null) {
+                    coverimg = new Coverimg();
+                    coverimg.setIdcoverimg(cover.getIdcover());
+                }
+
+                coverimg.setImage(blob);
+
+                coverimgRepository.save(coverimg);
+            } else {
+                System.out.println("addCover: no cover submitted.");
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        album.getCovers().add(cover);
+        resortSequence(album);
+        return new ResponseEntity<Set<Cover>>(album.getCovers(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/music/cover/{idcover}", method = RequestMethod.DELETE)
+    public @ResponseBody ResponseEntity<Set<Cover>> removeCover(@PathVariable("idcover") Integer idcover) {
+        Coverimg coverimg = coverimgRepository.findById(idcover).orElse(null);
+        if (coverimg != null) {
+            coverimgRepository.delete(coverimg);
+        }
+
+        Cover cover = coverRepository.findById(idcover).orElse(null);
+        if (cover == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Integer albumid = cover.getAlbumid();
+        coverRepository.delete(cover);
+
+        resortSequence(albumRepository.findById(albumid).orElse(null));
+        Set<Cover> covers = albumRepository.findById(albumid).orElse(null).getCovers();
+        return new ResponseEntity<Set<Cover>>(covers, HttpStatus.OK);
+    }
 
     @RequestMapping(value = "/movie/cover/{movieid}/{title:.+}", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<byte[]> getCover(@PathVariable("movieid") Integer movieid,

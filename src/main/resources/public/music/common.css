@@ -1,0 +1,111 @@
+body {
+  background-color: #dddddd;
+  margin:           0 auto;
+  position:         relative;
+}
+.title {
+  margin:           0 auto;
+  text-align:       center;
+  font-size:        30px;
+  font-family:      arial;
+  padding:          30px;
+}
+table.normal {
+  border-collapse:  collapse;
+  font-size:        12px;
+  margin:           0 auto;
+  width:            1000px;
+}
+table.noborder {
+  border-collapse:  collapse;
+  font-size:        12px;
+  margin:           0 auto;
+}
+th.normal {
+  border:           #999999 1px solid;
+  padding:          5px;
+  font-weight:      bolder;
+}
+td.normal {
+  border:           #999999 1px solid;
+  padding:          5px;
+}
+th.noborder {
+  padding:          5px;
+}
+td.noborder {
+  padding:          5px;
+}
+td.topic {
+  font-size:        16px;
+  font-family:      arial;
+  font-weight:      bolder;
+  padding:          15px;
+  color:            #333333;
+  background:       #bccddb;
+  color:            #333d6b;
+}
+button {
+  background-color: #bccddb;
+  width:            100px;
+  height:           30px;
+  font-size:        12px;
+  margin-top:       5px;
+  margin-bottom:    5px;
+  color:            #333d6b;
+}
+a {
+  text-decoration:  none;
+  color:            #333333;
+  font-weight:      bolder;
+}
+input[type="text"] {
+  width:            500px;
+}
+.sticky-top {
+  position:         absolute;
+  margin-left:      25px;
+  margin-top:       -230px;
+  opacity:          .90;
+  font-size:        16px;
+  padding:          5px;
+  color:            #000000;
+  background-color: #cccccc;
+  border-radius:    20px;
+}
+.sticky-left {
+  position:         absolute;
+  margin-left:      30px;
+  margin-top:       -80px;
+  opacity:          .70;
+}
+.sticky-right {
+  position:         absolute;
+  margin-left:      120px;
+  margin-top:       -80px;
+  opacity:          .70;
+}
+.sticky-middle-album {
+  position:         absolute;
+  margin-left:      80px;
+  margin-top:       -150px;
+  opacity:          .70;
+}
+.sticky-middle-album2 {
+  position:         absolute;
+  margin-left:      0px;
+  margin-top:       0px;
+  opacity:          1;
+}
+.sticky-left-album {
+  position:         absolute;
+  margin-left:      20px;
+  margin-top:       -80px;
+  opacity:          .70;
+}
+.sticky-right-album {
+  position:         absolute;
+  margin-left:      140px;
+  margin-top:       -80px;
+  opacity:          .70;
+}

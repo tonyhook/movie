@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="common.css" type="text/css" />
+  <script src="jquery-3.1.0.js" type="text/javascript"></script>
+  <title>专辑详情</title>
+</head>
+<body>
+  <div class="title">专辑详情</div>
+  <table class="normal" id="detail">
+    <tr class="noborder">
+      <td class="topic" colspan="3">基本信息</td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">专辑名称</th>
+      <td class="noborder" id="title"></td>
+      <td class="noborder" rowspan="5"><img id="defaultcover" alt="cover" height="200px" /></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">发布日期</th>
+      <td class="noborder" id="releasedate"></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">厂牌</th>
+      <td class="noborder" id="label"></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">编号</th>
+      <td class="noborder" id="cat"></td>
+    </tr>
+    <tr class="noborder">
+      <th class="noborder">类型</th>
+      <td class="noborder" id="genre"></td>
+    </tr>
+    <tr class="noborder">
+      <td class="topic" colspan="3">专辑曲目</td>
+    </tr>
+  </table>
+  <script type="text/javascript" charset="utf-8">
+    function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    }
+
+    function transformToAssocArray(prmstr) {
+      var params = {};
+      var prmarr = prmstr.split("&");
+      for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+      }
+      return params;
+    }
+
+    $(function() {
+      var params = getSearchParameters();
+      var idalbum = params["idalbum"] ? params["idalbum"] : "1";
+      var dataUrl = params["idalbum"] ? "album/" + idalbum : "album/1";
+
+      $.get(dataUrl, function(data, status) {
+        var td_title = document.getElementById("title");
+        td_title.textContent = data.title;
+
+        var td_releasedate = document.getElementById("releasedate");
+        td_releasedate.textContent = data.releasedate;
+
+        var td_label = document.getElementById("label");
+        td_label.textContent = data.label;
+
+        var td_cat = document.getElementById("cat");
+        td_cat.textContent = data.cat;
+
+        var td_genre = document.getElementById("genre");
+        td_genre.textContent = data.genre;
+
+        var img_defaultcover = document.getElementById("defaultcover");
+        img_defaultcover.src = "cover/" + data.covers[0].idcover;
+
+      });
+    });
+  </script>
+</body>
+</html>
