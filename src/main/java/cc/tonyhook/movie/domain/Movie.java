@@ -17,7 +17,7 @@ import javax.persistence.OrderBy;
 @Entity
 public class Movie {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idmovie;
 
     private String title;

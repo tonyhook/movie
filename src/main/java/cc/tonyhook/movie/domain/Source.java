@@ -14,7 +14,7 @@ import javax.persistence.OneToMany;
 @Entity
 public class Source {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idsource;
 
     private String name;

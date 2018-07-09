@@ -8,7 +8,7 @@ import javax.persistence.Id;
 @Entity
 public class Akatitle {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idakatitle;
 
     private Integer movieid;

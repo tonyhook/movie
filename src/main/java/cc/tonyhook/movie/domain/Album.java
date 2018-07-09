@@ -8,7 +8,7 @@ import javax.persistence.Id;
 @Entity
 public class Album {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idalbum;
 
     private Integer movieid;
