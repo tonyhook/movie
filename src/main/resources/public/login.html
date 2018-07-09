@@ -34,7 +34,7 @@
         success: function (data, status, xhr) {
           var token = xhr.getResponseHeader("Authorization");
           document.cookie = "token=" + token; 
-          window.location="movie/manage.html";
+          window.location = document.referrer;
         },
         error: function () {
           alert("Login failed.");
