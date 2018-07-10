@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" href="common.css" type="text/css" />
   <script src="jquery-3.1.0.js" type="text/javascript"></script>
-  <script src="jquery.lazyload.js?v=1.9.1" type="text/javascript"></script>
+  <script src="jquery.lazy.js?v=1.7.9" type="text/javascript"></script>
   <title>音乐列表</title>
 </head>
 <body>
@@ -22,10 +22,43 @@
 
         var i = 0;
         var row = null;
-        albumlist.forEach(function(album) {
+        var decade = 0;
+        albumlist.forEach(function (album) {
+          var listyear = new Date(album.listdate).getFullYear();
+          if (Math.trunc(listyear / 10) > decade) {
+            row = table.insertRow();
+            row.className = "topic";
+            decade = Math.trunc(listyear / 10);
+            i = 0;
+            var cell = row.insertCell();
+            cell.className = "topic";
+            cell.id = decade;
+            cell.style = "vertical-align: top;";
+            cell.innerText = "Year: " + decade * 10 + "-" + (decade * 10 + 9);
+            cell.colSpan = 5;
+            cell.addEventListener("click", function () {
+              var rows = document.getElementsByTagName("tr");
+              for (var i = 0; i < rows.length; i++) { 
+                if (rows[i].id.startsWith(this.id))
+                  if (rows[i].style.display == "none")
+                    rows[i].style = "display: block;";
+                  else
+                    rows[i].style = "display: none;";
+              }
+              $("img.lazy").Lazy({
+                visibleOnly: true,
+                effect : "fadeIn"
+              });
+            });
+            cell.addEventListener("mouseover", function () {
+              this.style.cursor = "pointer";
+            });
+          }
           if (i % 5 == 0) {
             row = table.insertRow();
             row.className = "noborder";
+            row.style = "display: none;"
+            row.id = decade + "." + i;
           }
           var cell = row.insertCell();
           cell.className = "noborder";
@@ -34,7 +67,7 @@
           cell.appendChild(div_box);
           var div_image = document.createElement("div");
           div_image.style = "margin: 10px; "
-          div_image.innerHTML = "<a href=\"view.html?idalbum=" + album.idalbum + "\"><img class=\"lazy\" data-original=\"cover/" + album.covers[0].idcover + "\" alt=\"" + album.title + "\" width=\"150px\"/></a>";
+          div_image.innerHTML = "<a href=\"view.html?idalbum=" + album.idalbum + "\"><img class=\"lazy\" data-src=\"cover/" + album.covers[0].idcover + "\" alt=\"" + album.title + "\" width=\"150px\"/></a>";
           div_box.appendChild(div_image);
           var div_title = document.createElement("div");
           div_title.style = "margin: 0px; font-size: 12px;";
@@ -42,9 +75,6 @@
           div_box.appendChild(div_title);
 
           i++;
-        });
-        $("img.lazy").lazyload({
-          effect : "fadeIn"
         });
       });
     });
