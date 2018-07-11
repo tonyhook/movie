@@ -20,17 +20,37 @@
       $.get(dataUrl, function(albumlist, status) {
         var table = document.getElementById("albumlist");
 
-        var i = 0;
+        var seq = 0;
         var row = null;
+        var cell = null;
         var decade = 0;
+
+        row = table.insertRow();
+        row.className = "topic";
+        cell = row.insertCell();
+        cell.className = "topic";
+        cell.style = "vertical-align: top;";
+        cell.innerText = "新建专辑";
+        cell.colSpan = 5;
+
+        row = table.insertRow();
+        row.className = "noborder";
+        cell = row.insertCell();
+        cell.className = "noborder";
+        cell.style = "width: 190px; text-align: center; vertical-align: top;";
+        var div_image = document.createElement("div");
+        div_image.style = "margin: 10px; width: 170px;"
+        div_image.innerHTML = "<a href=\"add.html\"><img src=\"img/add.png\" alt=\"add\" width=\"100px\"/></a>";
+        cell.appendChild(div_image);
+
         albumlist.forEach(function (album) {
           var listyear = new Date(album.listdate).getFullYear();
           if (Math.trunc(listyear / 10) > decade) {
+            seq = 0;
             row = table.insertRow();
             row.className = "topic";
             decade = Math.trunc(listyear / 10);
-            i = 0;
-            var cell = row.insertCell();
+            cell = row.insertCell();
             cell.className = "topic";
             cell.id = decade;
             cell.style = "vertical-align: top;";
@@ -54,11 +74,11 @@
               this.style.cursor = "pointer";
             });
           }
-          if (i % 5 == 0) {
+          if (seq % 5 == 0) {
             row = table.insertRow();
             row.className = "noborder";
             row.style = "display: none;"
-            row.id = decade + "." + i;
+            row.id = decade + "." + seq;
           }
           var cell = row.insertCell();
           cell.className = "noborder";
@@ -74,7 +94,7 @@
           div_title.innerText = album.title;
           div_box.appendChild(div_title);
 
-          i++;
+          seq++;
         });
       });
     });
