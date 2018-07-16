@@ -15,6 +15,9 @@
 
   <script type="text/javascript" charset="utf-8">
     $(function() {
+      if (document.cookie.indexOf("token=") == -1)
+        document.location = "/login.html";
+
       var dataUrl = "album/list";
 
       $.get(dataUrl, function(albumlist, status) {
