@@ -1,5 +1,7 @@
 package cc.tonyhook.movie.controller;
 
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +9,11 @@ import java.util.Set;
 
 import javax.sql.rowset.serial.SerialBlob;
 import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.Connection.Response;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +27,9 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cc.tonyhook.movie.domain.Album;
 import cc.tonyhook.movie.domain.AlbumRepository;
@@ -47,6 +57,60 @@ public class CoverController {
         Iterable<Cover> covers = coverRepository.findByAlbumidOrderBySequence(albumid);
 
         return new ResponseEntity<Iterable<Cover>>(covers, HttpStatus.OK);
+    }
+
+
+    @RequestMapping(value = "/music/cover/album/{albumid}/discogs", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<byte[]> getDiscogsCoverUrl(@PathVariable("albumid") Integer albumid) {
+        Album album = albumRepository.findById(albumid).orElse(null);
+        if (album == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if ((album.getDiscogsID() == null) || (album.getDiscogsID().length() == 0)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            String discogsUrl = "https://www.discogs.com/release/" + album.getDiscogsID();
+            String coverUrl = "";
+
+            URLConnection connection = new URL(discogsUrl).openConnection();
+            connection.addRequestProperty("Accept-Language", "en-US");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+            Document doc = Jsoup.parse(connection.getInputStream(), "UTF-8", discogsUrl);
+            Elements elements;
+
+            // <div class="image_gallery image_gallery_large" data-images=
+            elements = doc.getElementsByTag("div");
+            for (Element element : elements) {
+                String divClass = element.attr("class");
+
+                if (divClass.equals("image_gallery image_gallery_large")) {
+                    String dataImages = element.attr("data-images");
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode imageList = mapper.readTree(dataImages);
+                    coverUrl = imageList.get(0).get("full").asText();
+                }
+            }
+
+            if (coverUrl.length() > 0) {
+                Response resp = Jsoup.connect(coverUrl).ignoreContentType(true).maxBodySize(0).execute();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(MediaType.IMAGE_JPEG_VALUE));
+                headers.setContentDisposition(ContentDisposition.builder("inline").filename(
+                        coverUrl.split("/")[coverUrl.split("/").length - 1]).build());
+
+                return new ResponseEntity<byte[]>(resp.bodyAsBytes(), headers, HttpStatus.OK);             
+            }
+            else
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Throwable e) {
+            System.out.println("Discogs: failed to get " + albumid + "'s Discogs cover");
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @RequestMapping(value = "/music/cover/{idcover}", method = RequestMethod.GET)
