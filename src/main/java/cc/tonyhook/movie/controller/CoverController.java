@@ -11,6 +11,7 @@ import javax.sql.rowset.serial.SerialBlob;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.Connection.Response;
+import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -37,6 +38,9 @@ import cc.tonyhook.movie.domain.Cover;
 import cc.tonyhook.movie.domain.CoverRepository;
 import cc.tonyhook.movie.domain.Coverimg;
 import cc.tonyhook.movie.domain.CoverimgRepository;
+import cc.tonyhook.movie.domain.Movie;
+import cc.tonyhook.movie.domain.MovieRepository;
+import cc.tonyhook.movie.domain.Movie_company;
 
 @RestController
 public class CoverController {
@@ -46,6 +50,24 @@ public class CoverController {
     private CoverRepository coverRepository;
     @Autowired
     private CoverimgRepository coverimgRepository;
+    @Autowired
+    private MovieRepository movieRepository;
+
+    private static String NAS_ADDRESS = "tonyhook.3322.org";
+    private static int NAS_PORT = 4443;
+    private static String NAS_SHARE = "Movie";
+
+    private String getDefaultCompanyName(Movie movie) {
+        if (movie.getMovie_companies() != null) {
+            Set<Movie_company> movie_companies = movie.getMovie_companies();
+            for (Movie_company movie_company : movie_companies) {
+                if (movie_company.getPreferred() == 1) {
+                    return movie_company.getCompany().getName();
+                }
+            }
+        }
+        return "";
+    }
 
     @RequestMapping(value = "/music/cover/album/{albumid}", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<Iterable<Cover>> listCoverByAlbum(@PathVariable("albumid") Integer albumid) {
@@ -109,6 +131,56 @@ public class CoverController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Throwable e) {
             System.out.println("Discogs: failed to get " + albumid + "'s Discogs cover");
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @RequestMapping(value = "/music/cover/album/{albumid}/nas", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<byte[]> getNASCover(@PathVariable("albumid") Integer albumid) {
+        Album album = albumRepository.findById(albumid).orElse(null);
+        if (album == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if (album.getMovieid() == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Integer movieid = album.getMovieid();
+        Movie movie = movieRepository.findById(movieid).orElse(null);
+        String companyFolder = getDefaultCompanyName(movie);
+        String movieFolder = movie.getReleasedate().toString().replace("-", ".") + "." + movie.getTitle();
+        String albumFolder = album.getTitle();
+        if ((album.getLabel() != null) && (album.getLabel().length() > 0)) {
+            albumFolder = albumFolder + " (" + album.getLabel();
+            if ((album.getCat() != null) && (album.getCat().length() > 0))
+                albumFolder = albumFolder + " " + album.getCat();
+            albumFolder = albumFolder + ")";
+        }
+
+        try {
+            String coverUrl = "https://" + NAS_ADDRESS + ":" + NAS_PORT
+                    + "/" + NAS_SHARE + "/CD/"
+                    + companyFolder + "/Soundtrack/"
+                    + movieFolder + "/"
+                    + albumFolder + "/"
+                    + album.getTitle() + ".jpg";
+            System.out.println(coverUrl);
+            Response resp = Jsoup.connect(coverUrl).ignoreContentType(true).maxBodySize(0).execute();
+
+            if (resp.statusCode() == 200) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(MediaType.IMAGE_JPEG_VALUE));
+                headers.setContentDisposition(ContentDisposition.builder("inline").filename(
+                        album.getTitle() + ".jpg").build());
+
+                return new ResponseEntity<byte[]>(resp.bodyAsBytes(), headers, HttpStatus.OK);     
+            } else
+                return new ResponseEntity<>(HttpStatus.valueOf(resp.statusCode()));
+        } catch (HttpStatusException e) {
+            return new ResponseEntity<>(HttpStatus.valueOf(e.getStatusCode()));
+        } catch (Throwable e) {
+            System.out.println("NAS: failed to get " + albumid + "'s NAS cover");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

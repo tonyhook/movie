@@ -14,7 +14,10 @@
   <table class="normal" id="detail">
     <tr class="noborder">
       <td class="topic" colspan="2">基本信息
-        <div style="display: inline; position: relative; left: 700px;">
+        <div style="display: inline; position: relative; left: 500px;">
+          <button id="submit" onclick="nas()">同步NAS数据</button>
+        </div>
+        <div style="display: inline; position: relative; left: 550px;">
           <button id="submit" onclick="submit()">修改</button>
         </div>
       </td>
@@ -463,6 +466,46 @@
             document.location = "/login.html";
         }
       });
+    }
+
+    function nas() {
+      var xmlobj = new XMLHttpRequest();
+      xmlobj.responseType = "blob";
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 200) {
+            var blob = this.response;
+            var reader = new FileReader();
+
+            reader.addEventListener("loadend", function() {
+              var sparkMD5 = new SparkMD5.ArrayBuffer();
+              sparkMD5.append(this.result);
+              var md5 = sparkMD5.end();
+
+              var coverExists = false;
+              var imgs = document.getElementsByTagName("img");
+              for (var i = 0; i < imgs.length; i++)
+                if (imgs[i].id.startsWith("coverimg"))
+                  if (imgs[i].md5 == md5)
+                    coverExists = true;
+
+              if (!coverExists) {
+                alert("NAS封面不在数据库中，请尝试导入数据库或替换NAS封面");
+              } else {
+                alert("NAS封面在数据库中");
+              }
+            });
+
+            reader.readAsArrayBuffer(blob);
+          }
+          if (xmlobj.status === 404) {
+            alert("NAS路径不存在");
+          }
+        }
+      };
+      xmlobj.open("GET", "cover/album/" + idalbum + "/nas");
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.send();
     }
 
     $(function () {
