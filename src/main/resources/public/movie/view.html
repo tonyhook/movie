@@ -128,7 +128,13 @@
           div_cover.style="display: inline; padding: 5px;";
           var img = document.createElement("img");
           img.style = "height: 150px;";
-          img.src = "cover/" + idmovie + "/" + cover.title;
+          img.src = "../music/cover/" + cover.idalbum;
+          img.onclick = function() {
+            window.location.href = "../music/view.html?idalbum=" + cover.idalbum;
+          };
+          img.onmouseover = function() {
+            this.style.cursor = "pointer";
+          };
           div_cover.appendChild(img);
           td_cover.appendChild(div_cover);
         });

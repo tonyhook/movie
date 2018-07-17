@@ -39,7 +39,7 @@
 
   <script type="text/javascript" charset="utf-8">
     var sort = "4-a";
-    var movielist, index, albums;
+    var movielist, index, albums, movieinfos;
 
     function getSearchParameters() {
       var prmstr = window.location.search.substr(1);
@@ -96,7 +96,7 @@
           div_cover.style="display: inline; padding: 5px;";
           var img = document.createElement("img");
           img.style = "height: 150px;";
-          img.src = "cover/" + movielist[i].idmovie + "/" + cover;
+          img.src = "../music/cover/" + cover;
           div_cover.appendChild(img);
           td6.appendChild(div_cover);
         });
@@ -183,7 +183,9 @@
         movielist = movielistresult;
         index = new Array(movielist.length);
         albums = new Array();
-        
+        movieinfos = movielist.length;
+        console.log(movieinfos);
+
         var album = 0, audio = 0, video = 0;
         for (var i = 0; i < movielist.length; i++)
         {
@@ -197,10 +199,16 @@
             $.get(movieUrl, function(movieresult, status) {
               var idmovie = movieresult.idmovie;
               movieresult.albums.forEach(function(album) {
-                albums[idmovie][albums[idmovie].length] = album.title;
+                albums[idmovie][albums[idmovie].length] = album.covers[0].idcover;
               });
+              movieinfos--;
+              console.log(movieinfos);
+              if (movieinfos == 0) {
+                filltable();
+              }
             });
-          }
+          } else
+            movieinfos--;
           if (movielist[i].video == 1)
             video++;
         }

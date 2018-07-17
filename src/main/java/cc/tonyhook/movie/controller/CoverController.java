@@ -4,7 +4,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Blob;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import javax.sql.rowset.serial.SerialBlob;
@@ -364,28 +363,6 @@ public class CoverController {
         resortSequence(albumRepository.findById(albumid).orElse(null));
         Set<Cover> covers = albumRepository.findById(albumid).orElse(null).getCovers();
         return new ResponseEntity<Set<Cover>>(covers, HttpStatus.OK);
-    }
-
-    @RequestMapping(value = "/movie/cover/{movieid}/{title:.+}", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<byte[]> getCover(@PathVariable("movieid") Integer movieid,
-            @PathVariable("title") String title) {
-        try {
-            List<Album> a = albumRepository.findAllByMovieidAndTitle(movieid, title);
-
-            if ((a.size() == 0) || (coverimgRepository.findById(a.get(0).getIdalbum()).orElse(null) == null)) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            } else {
-                byte[] media = IOUtils.toByteArray(coverimgRepository.findById(a.get(0).getIdalbum()).orElse(null).getImage().getBinaryStream());
-
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.parseMediaType(MediaType.IMAGE_JPEG_VALUE));
-                headers.setContentDisposition(ContentDisposition.builder("inline").filename(title + ".jpg").build());
-
-                return new ResponseEntity<>(media, headers, HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
     }
 
 }
