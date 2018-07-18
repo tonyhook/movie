@@ -184,7 +184,6 @@
         index = new Array(movielist.length);
         albums = new Array();
         movieinfos = movielist.length;
-        console.log(movieinfos);
 
         var album = 0, audio = 0, video = 0;
         for (var i = 0; i < movielist.length; i++)
@@ -202,7 +201,6 @@
                 albums[idmovie][albums[idmovie].length] = album.covers[0].idcover;
               });
               movieinfos--;
-              console.log(movieinfos);
               if (movieinfos == 0) {
                 filltable();
               }
