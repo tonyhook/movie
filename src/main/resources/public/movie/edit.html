@@ -277,7 +277,13 @@
             div_poster.style = "display: inline; padding: 5px;";
             var img = document.createElement("img");
             img.style = "height: 200px;";
-            img.src = "poster/" + poster.idposter + "/" + poster.imagename;
+            img.src = "poster/" + poster.idposter + "/" + poster.imagename + "?height=200";
+            img.onclick = function() {
+              window.location.href = "poster/" + poster.idposter + "/" + poster.imagename;
+            };
+            img.onmouseover = function() {
+              this.style.cursor = "pointer";
+            };
             div_poster.appendChild(img);
             td_poster.appendChild(div_poster);
           });
@@ -302,7 +308,7 @@
 
           if (data.imdb != null) {
             var img_imdb_poster = document.getElementById("imdb_poster");
-            img_imdb_poster.src = "poster/" + data.imdb.poster;
+            img_imdb_poster.src = "poster/" + data.imdb.poster + "?height=200";
             var td_imdb_title = document.getElementById("imdb_title");
             td_imdb_title.textContent = data.imdb.title;
             var td_imdb_releasedate = document.getElementById("imdb_releasedate");
@@ -321,7 +327,7 @@
             th.class = "noborder";
             if (movie_source.poster) {
               var poster = document.createElement("img");
-              poster.src = "poster/" + movie_source.poster;
+              poster.src = "poster/" + movie_source.poster + "?height=200";
               poster.height = 80;
               th.appendChild(poster);
             }

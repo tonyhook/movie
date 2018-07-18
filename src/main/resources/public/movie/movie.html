@@ -93,7 +93,7 @@
           var div_image = document.createElement("div");
           div_image.style = "margin: 10px; height: 230px;"
           if (movie.poster) {
-            div_image.innerHTML = "<a href=\"view.html?idmovie=" + movie.idmovie + "\"><img class=\"lazy\" data-src=\"/movie/poster/" + movie.poster + "\" alt=\"" + movie.title + "\" width=\"150px\"/></a>";
+            div_image.innerHTML = "<a href=\"view.html?idmovie=" + movie.idmovie + "\"><img class=\"lazy\" data-src=\"/movie/poster/" + movie.poster + "?width=150\" alt=\"" + movie.title + "\" width=\"150px\"/></a>";
           } else {
             div_image.innerHTML = "<a href=\"view.html?idmovie=" + movie.idmovie + "\"><img class=\"lazy\" data-src=\"/movie/img/poster.png\" alt=\"" + movie.title + "\" width=\"150px\"/></a>";
           }
