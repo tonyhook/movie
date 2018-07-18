@@ -34,6 +34,11 @@
       <td class="noborder" id="genre"></td>
     </tr>
     <tr class="noborder">
+      <th class="noborder">关联影片</th>
+      <td class="noborder" id="movie"></td>
+      <td class="noborder" id="movieposter"></td>
+    </tr>
+    <tr class="noborder">
       <td class="topic" colspan="3">专辑曲目</td>
     </tr>
   </table>
@@ -73,6 +78,18 @@
 
         var td_genre = document.getElementById("genre");
         td_genre.textContent = data.genre;
+
+        if (data.movieid > 0) {
+          movieUrl = "../movie/movie/" + data.movieid;
+          $.get(movieUrl, function(moviedata, status) {
+            var td_movie = document.getElementById("movie");
+            td_movie.textContent = moviedata.title;
+            var td_movieposter = document.getElementById("movieposter");
+            var img = document.createElement("img");
+            img.src = "../movie/poster/" + moviedata.posters[0].idposter + "/" + moviedata.posters[0].imagename + "?height=200";
+            td_movieposter.appendChild(img);
+          });
+        }
 
         var img_defaultcover = document.getElementById("defaultcover");
         img_defaultcover.src = "cover/" + data.covers[0].idcover;

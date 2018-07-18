@@ -86,7 +86,7 @@
         <th class="noborder">Discogs</th>
         <td class="noborder">
           <input type="text" id="discogsID" value="" />
-          <button id="addDiscogsCover" onclick="addDiscogsCover()"style="display: none;">添加到封面</button><p />
+          <button id="addDiscogsCover" onclick="addDiscogsCover()" style="display: none;">添加到封面</button><p />
           <img id="discogsCover" style="padding: 5px; height: 200px; display: none;" />
         </td>
     </tr>
@@ -106,6 +106,8 @@
         <th class="noborder">关联影片</th>
         <td class="noborder">
           <input type="text" id="movieid" value="" />
+          <div id="movieName" style="display: none;"></div>
+          <img id="moviePoster" style="padding: 5px; height: 200px; display: none;" />
         </td>
     </tr>
     <tr class="noborder">
@@ -458,6 +460,22 @@
         headers: {"Authorization": getCookie("token")},
         success: function () {
           document.getElementById("submit").disabled = false;
+
+          var movieid = document.getElementById("movieid").value;
+          if (movieid != null) {
+            movieUrl = "../movie/movie/" + movieid;
+            $.get(movieUrl, function(moviedata, status) {
+              var div_movie = document.getElementById("movieName");
+              div_movie.textContent = moviedata.title;
+              div_movie.style.display = "block";
+              var img_movieposter = document.getElementById("moviePoster");
+              img_movieposter.src = "../movie/poster/" + moviedata.posters[0].idposter + "/" + moviedata.posters[0].imagename + "?height=200";
+              img_movieposter.style.display = "block";
+            });
+          } else {
+            div_movie.style.display = "none";
+            img_movieposter.style.display = "none";
+          }
         },
         error: function (error) {
           document.getElementById("submit").disabled = false;
@@ -613,8 +631,19 @@
           text_status.value = data.status;
 
         var text_movieid = document.getElementById("movieid");
-        if (data.movieid != null)
+        if (data.movieid != null) {
           text_movieid.value = data.movieid;
+
+          movieUrl = "../movie/movie/" + data.movieid;
+          $.get(movieUrl, function(moviedata, status) {
+            var div_movie = document.getElementById("movieName");
+            div_movie.textContent = moviedata.title;
+            div_movie.style.display = "block";
+            var img_movieposter = document.getElementById("moviePoster");
+            img_movieposter.src = "../movie/poster/" + moviedata.posters[0].idposter + "/" + moviedata.posters[0].imagename + "?height=200";
+            img_movieposter.style.display = "block";
+          });
+        }
 
         covers = data.covers;
 
