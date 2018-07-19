@@ -205,8 +205,12 @@
                 filltable();
               }
             });
-          } else
+          } else {
             movieinfos--;
+            if (movieinfos == 0) {
+              filltable();
+            }
+          }
           if (movielist[i].video == 1)
             video++;
         }
