@@ -15,7 +15,7 @@
     <tr class="noborder">
       <td class="topic" colspan="2">基本信息
         <div style="display: inline; position: relative; left: 500px;">
-          <button id="submit" onclick="nas()">同步NAS数据</button>
+          <button id="syncNAS" onclick="nas()">同步NAS数据</button>
         </div>
         <div style="display: inline; position: relative; left: 550px;">
           <button id="submit" onclick="submit()">修改</button>
@@ -119,11 +119,14 @@
     <tr class="noborder">
       <td class="topic" colspan="2">专辑曲目</td>
     </tr>
+    <tr class="noborder">
+      <td class="noborder" colspan="2"><table class="normal" id="tracks"></table></td>
+    </tr>
   </table>
   <script type="text/javascript" charset="utf-8">
     var idalbum = null;
-    var covers = null;
-    var tracks = null;
+    var covers = new Array();
+    var tracks = new Array();
     var discogsCoverMD5 = null;
     var discogsCoverFile = null;
 
@@ -428,6 +431,154 @@
       td_cover.appendChild(div_cover);
     }
 
+    async function addTrack(newTrack) {
+      return new Promise(function (resolve, reject) {
+        var xmlobj = new XMLHttpRequest();
+        xmlobj.onload = function() {
+          if (xmlobj.readyState === 4) {
+            if (xmlobj.status === 403) {
+              window.location = "/login.html";
+            }
+            if (xmlobj.status === 200) {
+              tracks = JSON.parse(xmlobj.responseText);
+              drawTracks();
+              resolve(tracks);
+            }
+          }
+        };
+        xmlobj.open("PUT", "track");
+        xmlobj.setRequestHeader("Authorization", getCookie("token"));
+        xmlobj.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+        xmlobj.send(JSON.stringify(newTrack));
+      });
+    }
+
+    async function removeTrack(idtrack) {
+      return new Promise(function (resolve, reject) {
+        var xmlobj = new XMLHttpRequest();
+        xmlobj.onload = function() {
+          if (xmlobj.readyState === 4) {
+            if (xmlobj.status === 403) {
+              window.location = "/login.html";
+            }
+            if (xmlobj.status === 200) {
+              tracks = JSON.parse(xmlobj.responseText);
+              drawTracks();
+              resolve(tracks);
+            }
+          }
+        };
+        xmlobj.open("DELETE", "track/" + idtrack);
+        xmlobj.setRequestHeader("Authorization", getCookie("token"));
+        xmlobj.send();
+      });
+    }
+
+    function editTrack(idtrack) {
+      var disc = document.getElementById("cell.disc." + idtrack).value;
+      var trackno = document.getElementById("cell.track." + idtrack).value;
+      var name = document.getElementById("cell.name." + idtrack).value;
+      var start = document.getElementById("cell.start." + idtrack).value;
+      var end = document.getElementById("cell.end." + idtrack).value;
+
+      var track = {};
+      track.idtrack = idtrack;
+      track.albumid = idalbum;
+      track.disc = disc;
+      track.track = trackno;
+      track.name = name;
+      track.start = start;
+      track.end = end;
+
+      var xmlobj = new XMLHttpRequest();
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 403) {
+            window.location = "/login.html";
+          }
+          if (xmlobj.status === 200) {
+            tracks = JSON.parse(xmlobj.responseText);
+            drawTracks();
+          }
+        }
+      };
+      xmlobj.open("POST", "track/" + idtrack);
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+      xmlobj.send(JSON.stringify(track));
+    }
+
+    async function updateTrackfromNAS(data) {
+      for(var track of tracks) {
+        await removeTrack(track.idtrack);
+      }
+      for(var track of data) {
+        await addTrack(track);
+      }
+    }
+
+    function drawTracks() {
+      var table_tracks = document.getElementById("tracks");
+
+      while (table_tracks.rows.length != 0)
+        table_tracks.deleteRow(0);
+
+      for (var i = 0; i < tracks.length - 1; i++)
+        for (var j = i + 1; j < tracks.length; j++)
+          if ((tracks[i].disc > tracks[j].disc) ||
+            ((tracks[i].disc == tracks[j].disc) && (tracks[i].track > tracks[j].track))) {
+            var swap = tracks[i];
+            tracks[i] = tracks[j];
+            tracks[j] = swap;
+          }
+
+      tracks.forEach(function(track) {
+        var row = table_tracks.insertRow();
+        row.id = "track." + track.idtrack;
+        var cell = row.insertCell();
+        var input = document.createElement("input");
+        input.id = "cell.disc." + track.idtrack;
+        input.value = track.disc;
+        input.size = 1;
+        cell.appendChild(input);
+        var input = document.createElement("input");
+        input.id = "cell.track." + track.idtrack;
+        input.value = track.track;
+        input.size = 2;
+        cell.appendChild(input);
+        var input = document.createElement("input");
+        input.id = "cell.name." + track.idtrack;
+        input.value = track.name;
+        input.size = 100;
+        cell.appendChild(input);
+        var input = document.createElement("input");
+        input.id = "cell.start." + track.idtrack;
+        input.value = track.start;
+        input.size = 6;
+        cell.appendChild(input);
+        var input = document.createElement("input");
+        input.id = "cell.end." + track.idtrack;
+        input.value = track.end;
+        input.size = 6;
+        cell.appendChild(input);
+        var len = document.createElement("a");
+        len.id = "cell.len." + track.idtrack;
+        len.innerText = Math.floor((track.end - track.start) / 4500) + ":" + (Array(2).join("0") + Math.round((track.end - track.start) / 75) % 60).slice(-2);
+        len.href = "#";
+        cell.appendChild(len);
+        var mod = document.createElement("a");
+        mod.id = "cell.mod." + track.idtrack;
+        mod.innerText = " 修改 ";
+        mod.href = "javascript:editTrack(" + track.idtrack + ");";
+        cell.appendChild(mod);
+        var del = document.createElement("a");
+        del.id = "cell.del." + track.idtrack;
+        del.innerText = " 删除 ";
+        del.href = "javascript:removeTrack(" + track.idtrack + ");";
+        cell.appendChild(del);
+      });
+    }
+
     function submit() {
       document.getElementById("submit").disabled = true;
       var params = getSearchParameters();
@@ -486,7 +637,7 @@
       });
     }
 
-    function nas() {
+    function syncNASCover() {
       var xmlobj = new XMLHttpRequest();
       xmlobj.responseType = "blob";
       xmlobj.onload = function() {
@@ -517,13 +668,30 @@
             reader.readAsArrayBuffer(blob);
           }
           if (xmlobj.status === 404) {
-            alert("NAS路径不存在");
+            alert("NAS封面不存在");
           }
         }
       };
       xmlobj.open("GET", "cover/album/" + idalbum + "/nas");
       xmlobj.setRequestHeader("Authorization", getCookie("token"));
       xmlobj.send();
+    }
+
+    function syncNASCUE() {
+      var dataUrl = "track/album/" + idalbum + "/nas";
+      $.get(dataUrl, function (data, status) {
+        if (confirm("NAS CUE已提取，是否替换数据库记录？")) {
+          updateTrackfromNAS(data);
+        }
+      })
+      .fail(function() {
+        alert("NAS CUE不存在");
+      });
+    }
+
+    function nas() {
+      syncNASCover();
+      syncNASCUE();
     }
 
     $(function () {
@@ -646,8 +814,10 @@
         }
 
         covers = data.covers;
+        tracks = data.tracks;
 
         drawCovers();
+        drawTracks();
       });
     });
   </script>

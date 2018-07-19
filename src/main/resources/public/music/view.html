@@ -41,6 +41,9 @@
     <tr class="noborder">
       <td class="topic" colspan="3">专辑曲目</td>
     </tr>
+    <tr class="noborder">
+      <td class="noborder" colspan="3"><table class="normal" id="tracks"></table></td>
+    </tr>
   </table>
   <script type="text/javascript" charset="utf-8">
     function getSearchParameters() {
@@ -94,6 +97,20 @@
         var img_defaultcover = document.getElementById("defaultcover");
         img_defaultcover.src = "cover/" + data.covers[0].idcover;
 
+        var table_tracks = document.getElementById("tracks");
+        data.tracks.forEach(function(track) {
+          var row = table_tracks.insertRow();
+          row.className = "noborder";
+          var cell = row.insertCell();
+          cell.innerText = track.track;
+          cell.className = "noborder";
+          var cell = row.insertCell();
+          cell.innerText = track.name;
+          cell.className = "noborder";
+          var cell = row.insertCell();
+          cell.innerText = Math.floor((track.end - track.start) / 4500) + ":" + (Array(2).join("0") + Math.round((track.end - track.start) / 75) % 60).slice(-2);
+          cell.className = "noborder";
+        });
       });
     });
   </script>

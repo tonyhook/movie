@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface TrackRepository extends CrudRepository<Album, Integer> {
+public interface TrackRepository extends CrudRepository<Track, Integer> {
 
-    List<Album> findAllByMovieidAndTitle(Integer movieid, String title);
+    List<Track> findByAlbumidOrderByDiscAscTrackAsc(Integer albumid);
 
 }
