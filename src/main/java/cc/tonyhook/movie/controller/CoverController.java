@@ -80,7 +80,6 @@ public class CoverController {
         return new ResponseEntity<Iterable<Cover>>(covers, HttpStatus.OK);
     }
 
-
     @RequestMapping(value = "/music/cover/album/{albumid}/discogs", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<byte[]> getDiscogsCoverUrl(@PathVariable("albumid") Integer albumid) {
         Album album = albumRepository.findById(albumid).orElse(null);
@@ -164,7 +163,6 @@ public class CoverController {
                     + movieFolder + "/"
                     + albumFolder + "/"
                     + album.getTitle() + ".jpg";
-            System.out.println(coverUrl);
             Response resp = Jsoup.connect(coverUrl).ignoreContentType(true).maxBodySize(0).execute();
 
             if (resp.statusCode() == 200) {
@@ -207,7 +205,6 @@ public class CoverController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
     }
 
     private void resortSequence(Album album) {
