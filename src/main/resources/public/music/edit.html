@@ -480,6 +480,10 @@
       var name = document.getElementById("cell.name." + idtrack).value;
       var start = document.getElementById("cell.start." + idtrack).value;
       var end = document.getElementById("cell.end." + idtrack).value;
+      var single = document.getElementById("cell.single." + idtrack).checked;
+      var format = document.getElementById("cell.format." + idtrack).value;
+      var lossless = document.getElementById("cell.lossless." + idtrack).checked;
+      var accurate = document.getElementById("cell.accurate." + idtrack).checked;
 
       var track = {};
       track.idtrack = idtrack;
@@ -489,6 +493,10 @@
       track.name = name;
       track.start = start;
       track.end = end;
+      track.single = single;
+      track.format = format;
+      track.lossless = lossless;
+      track.accurate = accurate;
 
       var xmlobj = new XMLHttpRequest();
       xmlobj.onload = function() {
@@ -549,7 +557,7 @@
         var input = document.createElement("input");
         input.id = "cell.name." + track.idtrack;
         input.value = track.name;
-        input.size = 100;
+        input.size = 50;
         cell.appendChild(input);
         var input = document.createElement("input");
         input.id = "cell.start." + track.idtrack;
@@ -566,6 +574,35 @@
         len.innerText = Math.floor((track.end - track.start) / 4500) + ":" + (Array(2).join("0") + Math.round((track.end - track.start) / 75) % 60).slice(-2);
         len.href = "#";
         cell.appendChild(len);
+        var input = document.createElement("input");
+        input.id = "cell.single." + track.idtrack;
+        input.type = "checkbox";
+        input.checked = track.single;
+        cell.appendChild(input);
+        var span = document.createElement("span");
+        span.textContent = "整轨 格式：";
+        cell.appendChild(span);
+        var input = document.createElement("input");
+        input.id = "cell.format." + track.idtrack;
+        input.value = track.format;
+        input.size = 6;
+        cell.appendChild(input);
+        var input = document.createElement("input");
+        input.id = "cell.lossless." + track.idtrack;
+        input.type = "checkbox";
+        input.checked = track.lossless;
+        cell.appendChild(input);
+        var span = document.createElement("span");
+        span.textContent = "无损";
+        cell.appendChild(span);
+        var input = document.createElement("input");
+        input.id = "cell.accurate." + track.idtrack;
+        input.type = "checkbox";
+        input.checked = track.accurate;
+        cell.appendChild(input);
+        var span = document.createElement("span");
+        span.textContent = "精确";
+        cell.appendChild(span);
         var mod = document.createElement("a");
         mod.id = "cell.mod." + track.idtrack;
         mod.innerText = " 修改 ";

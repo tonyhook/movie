@@ -110,6 +110,22 @@
           var cell = row.insertCell();
           cell.innerText = Math.floor((track.end - track.start) / 4500) + ":" + (Array(2).join("0") + Math.round((track.end - track.start) / 75) % 60).slice(-2);
           cell.className = "noborder";
+          var cell = row.insertCell();
+          var img = document.createElement("img");
+          img.height = 20;
+          img.src = track.single ? "img/single.png" : "img/track.png";
+          cell.appendChild(img);
+          var img = document.createElement("img");
+          img.height = 20;
+          img.src = "img/" + track.format + ".png";
+          cell.appendChild(img);
+          if (track.lossless) {
+            var img = document.createElement("img");
+            img.height = 20;
+            img.src = "img/lossless.png";
+            cell.appendChild(img);
+          }
+          cell.className = "noborder";
         });
       });
     });

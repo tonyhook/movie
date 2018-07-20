@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bunjlabs.jecue.CueLoader;
+import com.bunjlabs.jecue.entities.CueFileInfo;
 import com.bunjlabs.jecue.entities.CueSheet;
+import com.bunjlabs.jecue.entities.CueTrackInfo;
 
 import cc.tonyhook.movie.domain.Album;
 import cc.tonyhook.movie.domain.AlbumRepository;
@@ -109,14 +111,36 @@ public class TrackController {
                     CueLoader cueLoader = new CueLoader(resp.bodyStream());
                     CueSheet cueSheet = cueLoader.load();
 
-                    for (int trackno = 1; trackno <= cueSheet.getFiles().get(0).getTracks().size(); trackno++) {
-                        Track track = new Track();
-                        track.setAlbumid(albumid);
-                        track.setDisc(disc);
-                        track.setTrack(trackno);
-                        track.setName(cueSheet.getFiles().get(0).getTracks().get(trackno - 1).getTitle());
+                    for (int fileno = 0; fileno < cueSheet.getFiles().size(); fileno++) {
+                        CueFileInfo cfi = cueSheet.getFiles().get(fileno);
 
-                        tracks.add(track);
+                        for (int trackno = 0; trackno < cfi.getTracks().size(); trackno++) {
+                            CueTrackInfo cti = cfi.getTracks().get(trackno);
+
+                            Track track = new Track();
+
+                            track.setAlbumid(albumid);
+                            track.setDisc(disc);
+                            track.setTrack(cti.getNumber());
+                            track.setName(cti.getTitle());
+
+                            if (cueSheet.getFiles().size() == 1)
+                                track.setSingle(true);
+                            else
+                                track.setSingle(false);
+
+                            if (cfi.getFileName().endsWith("wav")
+                                || cfi.getFileName().endsWith("ape")
+                                || cfi.getFileName().endsWith("flac"))
+                                track.setLossless(true);
+                            else
+                                track.setLossless(false);
+ 
+                            track.setFormat(cfi.getFileName().split("\\.")[cfi.getFileName().split("\\.").length - 1]);
+
+                            tracks.add(track);
+                        }
+
                     }
                 }
 
@@ -142,6 +166,21 @@ public class TrackController {
                                         if (track.getTrack().equals(trackno)) {
                                             track.setStart(Integer.parseInt(trackinfo[3]));
                                             track.setEnd(Integer.parseInt(trackinfo[4]));
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                }
+                            }
+                            if (line.split("\\|").length == 2) {
+                                try {
+                                    String[] trackinfo = line.split("\\|");
+                                    Integer trackno = Integer.parseInt(trackinfo[0]);
+                                    for (Track track : tracks) {
+                                        if (track.getTrack().equals(trackno)) {
+                                            if (trackinfo[1].indexOf("Accuratelyripped") >= 0)
+                                                track.setAccurate(true);
+                                            else
+                                                track.setAccurate(false);
                                         }
                                     }
                                 } catch (Exception e) {
@@ -199,6 +238,10 @@ public class TrackController {
         track.setName(input.getName());
         track.setStart(input.getStart());
         track.setEnd(input.getEnd());
+        track.setSingle(input.getSingle());
+        track.setFormat(input.getFormat());
+        track.setLossless(input.getLossless());
+        track.setAccurate(input.getAccurate());
 
         trackRepository.save(track);
         albumRepository.save(album);

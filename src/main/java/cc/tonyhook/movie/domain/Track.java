@@ -23,6 +23,14 @@ public class Track {
 
     private String name;
 
+    private Boolean single;
+
+    private String format;
+
+    private Boolean lossless;
+
+    private Boolean accurate;
+
     public Integer getIdtrack() {
         return idtrack;
     }
@@ -77,6 +85,38 @@ public class Track {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getSingle() {
+        return single;
+    }
+
+    public void setSingle(Boolean single) {
+        this.single = single;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public Boolean getLossless() {
+        return lossless;
+    }
+
+    public void setLossless(Boolean lossless) {
+        this.lossless = lossless;
+    }
+
+    public Boolean getAccurate() {
+        return accurate;
+    }
+
+    public void setAccurate(Boolean accurate) {
+        this.accurate = accurate;
     }
 
 }
