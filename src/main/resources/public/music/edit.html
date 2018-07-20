@@ -117,7 +117,11 @@
       <td class="noborder" colspan="2" id="cover"></td>
     </tr>
     <tr class="noborder">
-      <td class="topic" colspan="2">专辑曲目</td>
+      <td class="topic" colspan="2">专辑曲目
+        <div style="display: inline; position: relative; left: 550px;">
+          <button id="newTrack" onclick="newTrack()">增加音轨</button>
+        </div>
+      </td>
     </tr>
     <tr class="noborder">
       <td class="noborder" colspan="2"><table class="normal" id="tracks"></table></td>
@@ -474,46 +478,49 @@
       });
     }
 
-    function editTrack(idtrack) {
-      var disc = document.getElementById("cell.disc." + idtrack).value;
-      var trackno = document.getElementById("cell.track." + idtrack).value;
-      var name = document.getElementById("cell.name." + idtrack).value;
-      var start = document.getElementById("cell.start." + idtrack).value;
-      var end = document.getElementById("cell.end." + idtrack).value;
-      var single = document.getElementById("cell.single." + idtrack).checked;
-      var format = document.getElementById("cell.format." + idtrack).value;
-      var lossless = document.getElementById("cell.lossless." + idtrack).checked;
-      var accurate = document.getElementById("cell.accurate." + idtrack).checked;
+    async function editTrack(idtrack) {
+      return new Promise(function (resolve, reject) {
+        var disc = document.getElementById("cell.disc." + idtrack).value;
+        var trackno = document.getElementById("cell.track." + idtrack).value;
+        var name = document.getElementById("cell.name." + idtrack).value;
+        var start = document.getElementById("cell.start." + idtrack).value;
+        var end = document.getElementById("cell.end." + idtrack).value;
+        var single = document.getElementById("cell.single." + idtrack).checked;
+        var format = document.getElementById("cell.format." + idtrack).value;
+        var lossless = document.getElementById("cell.lossless." + idtrack).checked;
+        var accurate = document.getElementById("cell.accurate." + idtrack).checked;
 
-      var track = {};
-      track.idtrack = idtrack;
-      track.albumid = idalbum;
-      track.disc = disc;
-      track.track = trackno;
-      track.name = name;
-      track.start = start;
-      track.end = end;
-      track.single = single;
-      track.format = format;
-      track.lossless = lossless;
-      track.accurate = accurate;
+        var track = {};
+        track.idtrack = idtrack;
+        track.albumid = idalbum;
+        track.disc = disc;
+        track.track = trackno;
+        track.name = name;
+        track.start = start;
+        track.end = end;
+        track.single = single;
+        track.format = format;
+        track.lossless = lossless;
+        track.accurate = accurate;
 
-      var xmlobj = new XMLHttpRequest();
-      xmlobj.onload = function() {
-        if (xmlobj.readyState === 4) {
-          if (xmlobj.status === 403) {
-            window.location = "/login.html";
+        var xmlobj = new XMLHttpRequest();
+        xmlobj.onload = function() {
+          if (xmlobj.readyState === 4) {
+            if (xmlobj.status === 403) {
+              window.location = "/login.html";
+            }
+            if (xmlobj.status === 200) {
+              tracks = JSON.parse(xmlobj.responseText);
+              drawTracks();
+              resolve(tracks);
+            }
           }
-          if (xmlobj.status === 200) {
-            tracks = JSON.parse(xmlobj.responseText);
-            drawTracks();
-          }
-        }
-      };
-      xmlobj.open("POST", "track/" + idtrack);
-      xmlobj.setRequestHeader("Authorization", getCookie("token"));
-      xmlobj.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-      xmlobj.send(JSON.stringify(track));
+        };
+        xmlobj.open("POST", "track/" + idtrack);
+        xmlobj.setRequestHeader("Authorization", getCookie("token"));
+        xmlobj.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+        xmlobj.send(JSON.stringify(track));
+      });
     }
 
     async function updateTrackfromNAS(data) {
@@ -606,12 +613,18 @@
         var mod = document.createElement("a");
         mod.id = "cell.mod." + track.idtrack;
         mod.innerText = " 修改 ";
-        mod.href = "javascript:editTrack(" + track.idtrack + ");";
+        mod.href = "javascript:void(0);";
+        mod.addEventListener("click", async function() {
+          await editTrack(track.idtrack);
+        });
         cell.appendChild(mod);
         var del = document.createElement("a");
         del.id = "cell.del." + track.idtrack;
         del.innerText = " 删除 ";
-        del.href = "javascript:removeTrack(" + track.idtrack + ");";
+        del.href = "javascript:void(0);";
+        del.addEventListener("click", async function() {
+          await removeTrack(track.idtrack);
+        });
         cell.appendChild(del);
       });
     }
@@ -729,6 +742,11 @@
     function nas() {
       syncNASCover();
       syncNASCUE();
+    }
+
+    function newTrack() {
+      var track = {albumid: idalbum};
+      addTrack(track);
     }
 
     $(function () {
