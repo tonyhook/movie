@@ -629,6 +629,78 @@
       });
     }
 
+    function drawMoviePoster(movieid) {
+      var div_movie = document.getElementById("movieName");
+      var img_movieposter = document.getElementById("moviePoster");
+    
+      if ((movieid == null) || (movieid == "")) {
+        div_movie.style.display = "none";
+        img_movieposter.style.display = "none";
+        return;
+      }
+
+      movieUrl = "../movie/movie/" + movieid;
+      $.get(movieUrl, function(moviedata, status) {
+        div_movie.textContent = moviedata.title;
+        div_movie.style.display = "block";
+        img_movieposter.src = "../movie/poster/" + moviedata.posters[0].idposter + "/" + moviedata.posters[0].imagename + "?height=200";
+        img_movieposter.style.display = "block";
+      });
+    }
+
+    function drawDiscogsCover(discogsID) {
+      var btn_addDiscogsCover = document.getElementById("addDiscogsCover");
+      var img_discogsCover = document.getElementById("discogsCover");
+
+      if ((discogsID == null) || (discogsID == "")) {
+        btn_addDiscogsCover.style.display = "none";
+        img_discogsCover.style.display = "none";
+        return;
+      }
+
+      var xmlobj = new XMLHttpRequest();
+      xmlobj.responseType = "blob";
+      xmlobj.onload = function() {
+        if (xmlobj.readyState === 4) {
+          if (xmlobj.status === 200) {
+            var blob = this.response;
+            discogsCoverFile = blob;
+
+            var reader = new FileReader();
+
+            reader.addEventListener("loadend", function() {
+              var sparkMD5 = new SparkMD5.ArrayBuffer();
+              sparkMD5.append(this.result);
+              var md5 = sparkMD5.end();
+              discogsCoverMD5 = md5;
+
+              var imgs = document.getElementsByTagName("img");
+              for (var i = 0; i < imgs.length; i++)
+                if (imgs[i].id.startsWith("coverimg")) {
+                  if (imgs[i].md5 == discogsCoverMD5) {
+                    btn_addDiscogsCover.disabled = "disabled";
+                    btn_addDiscogsCover.innerText = "封面已经导入";
+                  }
+                }
+              btn_addDiscogsCover.style.display = "block";
+              img_discogsCover.style.display = "block";
+
+              img_discogsCover.addEventListener("load", function () {
+                this.title = this.naturalWidth + "*" + this.naturalHeight + "\r" + discogsCoverMD5;
+                window.URL.revokeObjectURL(this.src);
+              });
+              img_discogsCover.src = window.URL.createObjectURL(blob);
+            });
+
+            reader.readAsArrayBuffer(blob);
+          }
+        }
+      };
+      xmlobj.open("GET", "cover/album/" + idalbum + "/discogs");
+      xmlobj.setRequestHeader("Authorization", getCookie("token"));
+      xmlobj.send();
+    }
+
     function submit() {
       document.getElementById("submit").disabled = true;
       var params = getSearchParameters();
@@ -662,21 +734,8 @@
         success: function () {
           document.getElementById("submit").disabled = false;
 
-          var movieid = document.getElementById("movieid").value;
-          if (movieid != null) {
-            movieUrl = "../movie/movie/" + movieid;
-            $.get(movieUrl, function(moviedata, status) {
-              var div_movie = document.getElementById("movieName");
-              div_movie.textContent = moviedata.title;
-              div_movie.style.display = "block";
-              var img_movieposter = document.getElementById("moviePoster");
-              img_movieposter.src = "../movie/poster/" + moviedata.posters[0].idposter + "/" + moviedata.posters[0].imagename + "?height=200";
-              img_movieposter.style.display = "block";
-            });
-          } else {
-            div_movie.style.display = "none";
-            img_movieposter.style.display = "none";
-          }
+          drawMoviePoster(document.getElementById("movieid").value);
+          drawDiscogsCover(document.getElementById("discogsID").value);
         },
         error: function (error) {
           document.getElementById("submit").disabled = false;
@@ -798,52 +857,8 @@
           text_barcode.value = data.barcode;
 
         var text_discogsID = document.getElementById("discogsID");
-        if (data.discogsID != null) {
+        if (data.discogsID != null)
           text_discogsID.value = data.discogsID;
-
-          var xmlobj = new XMLHttpRequest();
-          xmlobj.responseType = "blob";
-          xmlobj.onload = function() {
-            if (xmlobj.readyState === 4) {
-              if (xmlobj.status === 200) {
-                var blob = this.response;
-                discogsCoverFile = blob;
-
-                var reader = new FileReader();
-
-                reader.addEventListener("loadend", function() {
-                  var sparkMD5 = new SparkMD5.ArrayBuffer();
-                  sparkMD5.append(this.result);
-                  var md5 = sparkMD5.end();
-                  discogsCoverMD5 = md5;
-
-                  var imgs = document.getElementsByTagName("img");
-                  for (var i = 0; i < imgs.length; i++)
-                    if (imgs[i].id.startsWith("coverimg")) {
-                      if (imgs[i].md5 == discogsCoverMD5) {
-                        document.getElementById("addDiscogsCover").disabled = "disabled";
-                        document.getElementById("addDiscogsCover").innerText = "封面已经导入";
-                      }
-                    }
-                  document.getElementById("discogsCover").style.display = "block";
-                  document.getElementById("addDiscogsCover").style.display = "block";
-
-                  var img = document.getElementById("discogsCover");
-                  img.addEventListener("load", function () {
-                    this.title = this.naturalWidth + "*" + this.naturalHeight + "\r" + discogsCoverMD5;
-                    window.URL.revokeObjectURL(this.src);
-                  });
-                  img.src = window.URL.createObjectURL(blob);
-                });
-
-                reader.readAsArrayBuffer(blob);
-              }
-            }
-          };
-          xmlobj.open("GET", "cover/album/" + idalbum + "/discogs");
-          xmlobj.setRequestHeader("Authorization", getCookie("token"));
-          xmlobj.send();
-        }
 
         var text_asin = document.getElementById("asin");
         if (data.asin != null)
@@ -854,25 +869,16 @@
           text_status.value = data.status;
 
         var text_movieid = document.getElementById("movieid");
-        if (data.movieid != null) {
+        if (data.movieid != null)
           text_movieid.value = data.movieid;
-
-          movieUrl = "../movie/movie/" + data.movieid;
-          $.get(movieUrl, function(moviedata, status) {
-            var div_movie = document.getElementById("movieName");
-            div_movie.textContent = moviedata.title;
-            div_movie.style.display = "block";
-            var img_movieposter = document.getElementById("moviePoster");
-            img_movieposter.src = "../movie/poster/" + moviedata.posters[0].idposter + "/" + moviedata.posters[0].imagename + "?height=200";
-            img_movieposter.style.display = "block";
-          });
-        }
 
         covers = data.covers;
         tracks = data.tracks;
 
         drawCovers();
         drawTracks();
+        drawMoviePoster(data.movieid);
+        drawDiscogsCover(data.discogsID);
       });
     });
   </script>
