@@ -89,11 +89,22 @@
           var div_box = document.createElement("div");
           cell.appendChild(div_box);
           var div_image = document.createElement("div");
-          div_image.style = "margin: 10px; "
+          div_image.style = "margin: 10px;"
           div_image.innerHTML = "<a href=\"edit.html?idalbum=" + album.idalbum + "\"><img class=\"lazy\" data-src=\"cover/" + album.covers[0].idcover + "\" alt=\"" + album.title + "\" width=\"150px\"/></a>";
           div_box.appendChild(div_image);
           var div_title = document.createElement("div");
-          div_title.style = "margin: 0px; font-size: 12px;";
+          var status = album.status;
+          if (status != null) {
+            var tag = status.split(",")[0];
+            if (tag == 1)
+              div_title.style = "margin: 0px; font-size: 12px; background-color: lightgreen;";
+            if (tag == 0)
+              div_title.style = "margin: 0px; font-size: 12px; background-color: lightyellow;";
+            if (tag == -1)
+              div_title.style = "margin: 0px; font-size: 12px; background-color: lightcoral;";
+            if (tag == -2)
+                div_title.style = "margin: 0px; font-size: 12px; background-color: lightgrey;";
+          }
           var albumFolder = album.title; 
           if ((album.label != null) && (album.label != "")) { 
             albumFolder = albumFolder + " (" + album.label; 
