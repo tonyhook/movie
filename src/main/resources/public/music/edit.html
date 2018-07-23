@@ -14,11 +14,14 @@
   <table class="normal" id="detail">
     <tr class="noborder">
       <td class="topic" colspan="2">基本信息
-        <div style="display: inline; position: relative; left: 500px;">
+        <div style="display: inline; position: relative; left: 450px;">
           <button id="syncNAS" onclick="nas()">同步NAS数据</button>
         </div>
-        <div style="display: inline; position: relative; left: 550px;">
+        <div style="display: inline; position: relative; left: 500px;">
           <button id="submit" onclick="submit()">修改</button>
+        </div>
+        <div style="display: inline; position: relative; left: 550px;">
+          <button id="back" onclick="back()">返回列表</button>
         </div>
       </td>
     </tr>
@@ -532,6 +535,11 @@
       }
     }
 
+    function newTrack() {
+      var track = {albumid: idalbum};
+      addTrack(track);
+    }
+
     function drawTracks() {
       var table_tracks = document.getElementById("tracks");
 
@@ -803,9 +811,8 @@
       syncNASCUE();
     }
 
-    function newTrack() {
-      var track = {albumid: idalbum};
-      addTrack(track);
+    function back() {
+    	document.location = "manage.html";
     }
 
     $(function () {
