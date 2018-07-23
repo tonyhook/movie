@@ -71,7 +71,14 @@
           div_box.appendChild(div_image);
           var div_title = document.createElement("div");
           div_title.style = "margin: 0px; font-size: 12px;";
-          div_title.innerText = album.title;
+          var albumFolder = album.title;
+          if ((album.label != null) && (album.label != "")) {
+            albumFolder = albumFolder + " (" + album.label;
+            if ((album.cat != null) && (album.cat != ""))
+              albumFolder = albumFolder + " " + album.cat;
+            albumFolder = albumFolder + ")";
+          }
+          div_title.innerText = albumFolder;
           div_box.appendChild(div_title);
 
           i++;
