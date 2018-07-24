@@ -289,15 +289,15 @@
           });
 
           var td_cover = document.getElementById("cover");
-          var covers = data.albums;
-          covers.forEach(function(cover) {
+          var albums = data.albums;
+          albums.forEach(function(album) {
             var div_cover = document.createElement("div");
             div_cover.style="display: inline; padding: 5px;";
             var img = document.createElement("img");
             img.style = "height: 150px;";
-            img.src = "../music/cover/" + cover.idalbum;
+            img.src = "../music/cover/" + album.covers[0].idcover;
             img.onclick = function() {
-              window.location.href = "../music/edit.html?idalbum=" + cover.idalbum;
+              window.location.href = "../music/edit.html?idalbum=" + album.idalbum;
             };
             img.onmouseover = function() {
               this.style.cursor = "pointer";
