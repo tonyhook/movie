@@ -28,7 +28,7 @@ public class AlbumController {
 
     @RequestMapping(value = "/music/album/list", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
     public @ResponseBody ResponseEntity<Iterable<Album>> getAlbums() {
-        Iterable<Album> albums = albumRepository.findByOrderByListdate();
+        Iterable<Album> albums = albumRepository.findByOrderByListdateAscIdalbumAsc();
 
         return new ResponseEntity<Iterable<Album>>(albums, HttpStatus.OK);
     }

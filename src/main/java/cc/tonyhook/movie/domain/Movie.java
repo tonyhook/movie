@@ -48,10 +48,12 @@ public class Movie {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "movieid")
+    @OrderBy("idposter ASC")
     private Set<Poster> posters;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "movieid")
+    @OrderBy("idalbum ASC")
     private Set<Album> albums;
 
     public Integer getIdmovie() {
