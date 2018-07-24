@@ -295,7 +295,10 @@
             div_cover.style="display: inline; padding: 5px;";
             var img = document.createElement("img");
             img.style = "height: 150px;";
-            img.src = "../music/cover/" + album.covers[0].idcover;
+            if (album.covers.length > 0)
+              img.src = "../music/cover/" + album.covers[0].idcover;
+            else
+              img.src = "../music/img/single.png";
             img.onclick = function() {
               window.location.href = "../music/edit.html?idalbum=" + album.idalbum;
             };

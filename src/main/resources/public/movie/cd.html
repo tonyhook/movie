@@ -96,7 +96,10 @@
           div_cover.style="display: inline; padding: 5px;";
           var img = document.createElement("img");
           img.style = "height: 150px;";
-          img.src = "../music/cover/" + cover;
+          if (cover > 0)
+            img.src = "../music/cover/" + cover;
+          else
+            img.src = "../music/img/single.png";
           div_cover.appendChild(img);
           td6.appendChild(div_cover);
         });
@@ -198,7 +201,10 @@
             $.get(movieUrl, function(movieresult, status) {
               var idmovie = movieresult.idmovie;
               movieresult.albums.forEach(function(album) {
-                albums[idmovie][albums[idmovie].length] = album.covers[0].idcover;
+                if (album.covers.length > 0)
+                  albums[idmovie][albums[idmovie].length] = album.covers[0].idcover;
+                else
+                  albums[idmovie][albums[idmovie].length] = 0;
               });
               movieinfos--;
               if (movieinfos == 0) {

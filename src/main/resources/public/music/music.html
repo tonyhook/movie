@@ -67,7 +67,10 @@
           cell.appendChild(div_box);
           var div_image = document.createElement("div");
           div_image.style = "margin: 10px; "
-          div_image.innerHTML = "<a href=\"view.html?idalbum=" + album.idalbum + "\"><img class=\"lazy\" data-src=\"cover/" + album.covers[0].idcover + "\" alt=\"" + album.title + "\" width=\"150px\"/></a>";
+          if (album.covers.length > 0)
+            div_image.innerHTML = "<a href=\"view.html?idalbum=" + album.idalbum + "\"><img class=\"lazy\" data-src=\"cover/" + album.covers[0].idcover + "\" alt=\"" + album.title + "\" width=\"150px\"/></a>";
+          else
+            div_image.innerHTML = "<a href=\"view.html?idalbum=" + album.idalbum + "\"><img class=\"lazy\" data-src=\"img/single.png\" alt=\"" + album.title + "\" width=\"150px\"/></a>";
           div_box.appendChild(div_image);
           var div_title = document.createElement("div");
           div_title.style = "margin: 0px; font-size: 12px;";

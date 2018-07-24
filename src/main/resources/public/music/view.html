@@ -95,7 +95,10 @@
         }
 
         var img_defaultcover = document.getElementById("defaultcover");
-        img_defaultcover.src = "cover/" + data.covers[0].idcover;
+        if (data.covers.length > 0)
+          img_defaultcover.src = "cover/" + data.covers[0].idcover;
+        else
+          img_defaultcover.src = "img/single.png";
 
         var table_tracks = document.getElementById("tracks");
         data.tracks.forEach(function(track) {
