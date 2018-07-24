@@ -134,6 +134,14 @@
           div_cover.style="display: inline; padding: 5px;";
           var img = document.createElement("img");
           img.style = "height: 150px;";
+          var albumFolder = album.title; 
+          if ((album.label != null) && (album.label != "")) { 
+            albumFolder = albumFolder + " (" + album.label; 
+            if ((album.cat != null) && (album.cat != "")) 
+              albumFolder = albumFolder + " " + album.cat; 
+            albumFolder = albumFolder + ")"; 
+          } 
+          img.title = albumFolder;
           if (album.covers.length > 0)
             img.src = "../music/cover/" + album.covers[0].idcover;
           else
