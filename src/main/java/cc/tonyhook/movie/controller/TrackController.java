@@ -163,7 +163,7 @@ public class TrackController {
                                     String[] trackinfo = line.split("\\|");
                                     Integer trackno = Integer.parseInt(trackinfo[0]);
                                     for (Track track : tracks) {
-                                        if (track.getTrack().equals(trackno)) {
+                                        if ((track.getDisc().equals(disc)) && (track.getTrack().equals(trackno))) {
                                             track.setStart(Integer.parseInt(trackinfo[3]));
                                             track.setEnd(Integer.parseInt(trackinfo[4]));
                                         }
@@ -176,7 +176,7 @@ public class TrackController {
                                     String[] trackinfo = line.split("\\|");
                                     Integer trackno = Integer.parseInt(trackinfo[0]);
                                     for (Track track : tracks) {
-                                        if (track.getTrack().equals(trackno)) {
+                                        if ((track.getDisc().equals(disc)) && (track.getTrack().equals(trackno))) {
                                             if (trackinfo[1].indexOf("Accuratelyripped") >= 0)
                                                 track.setAccurate(true);
                                             else
