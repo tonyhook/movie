@@ -16,6 +16,8 @@ import cc.tonyhook.movie.domain.Cover;
 import cc.tonyhook.movie.domain.CoverRepository;
 import cc.tonyhook.movie.domain.Coverimg;
 import cc.tonyhook.movie.domain.CoverimgRepository;
+import cc.tonyhook.movie.domain.Track;
+import cc.tonyhook.movie.domain.TrackRepository;
 
 @RestController
 public class AlbumController {
@@ -25,6 +27,8 @@ public class AlbumController {
     private CoverRepository coverRepository;
     @Autowired
     private CoverimgRepository coverimgRepository;
+    @Autowired
+    private TrackRepository trackRepository;
 
     @RequestMapping(value = "/music/album/list", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
     public @ResponseBody ResponseEntity<Iterable<Album>> getAlbums() {
@@ -69,9 +73,11 @@ public class AlbumController {
         return new ResponseEntity<Album>(album, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/music/album/{idalbum}", method = RequestMethod.DELETE, consumes = "application/json; charset=UTF-8")
+    @RequestMapping(value = "/music/album/{idalbum}", method = RequestMethod.DELETE, produces = "application/json; charset=UTF-8")
     public @ResponseBody ResponseEntity<?> removeAlbum(@PathVariable("idalbum") Integer idalbum) {
         Iterable<Cover> covers = coverRepository.findByAlbumidOrderBySequence(idalbum);
+        Iterable<Track> tracks = trackRepository.findByAlbumidOrderByDiscAscTrackAsc(idalbum);
+
         for (Cover cover : covers) {
             Coverimg coverimg = coverimgRepository.findById(cover.getIdcover()).orElse(null);
             if (coverimg != null) {
@@ -79,6 +85,10 @@ public class AlbumController {
             }
 
             coverRepository.delete(cover);
+        }
+
+        for (Track track : tracks) {
+            trackRepository.delete(track);
         }
 
         Album album = albumRepository.findById(idalbum).orElse(null);

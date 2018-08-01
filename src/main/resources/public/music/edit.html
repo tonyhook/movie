@@ -15,10 +15,10 @@
     <tr class="noborder">
       <td class="topic" colspan="2">基本信息
         <div style="display: inline; position: relative; left: 450px;">
-          <button id="syncNAS" onclick="nas()">同步NAS数据</button>
+          <button id="syncNAS" onclick="syncNAS()">同步NAS数据</button>
         </div>
         <div style="display: inline; position: relative; left: 500px;">
-          <button id="submit" onclick="submit()">修改</button>
+          <button id="editAlbum" onclick="editAlbum()">修改</button>
         </div>
         <div style="display: inline; position: relative; left: 550px;">
           <button id="back" onclick="back()">返回列表</button>
@@ -129,6 +129,13 @@
     <tr class="noborder">
       <td class="noborder" colspan="2"><table class="normal" id="tracks"></table></td>
     </tr>
+    <tr class="noborder">
+      <td class="topic" colspan="2">删除专辑
+        <div style="display: inline; position: relative; left: 550px;">
+          <button id="delete" onclick="removeAlbum()">删除</button>
+        </div>
+      </td>
+    </tr>
   </table>
   <script type="text/javascript" charset="utf-8">
     var idalbum = null;
@@ -219,105 +226,117 @@
         addCover(discogsCoverFile);
     }
 
-    function addCover(file) {
-      var maxSequence = 0;
-      covers.forEach(function (cover) {
-        if (maxSequence < cover.sequence)
-          maxSequence = cover.sequence;
+    async function addCover(file) {
+      return new Promise(function (resolve, reject) {
+        var maxSequence = 0;
+        covers.forEach(function (cover) {
+          if (maxSequence < cover.sequence)
+            maxSequence = cover.sequence;
+        });
+
+        var data = new FormData();
+
+        maxSequence = maxSequence + 1;
+        var newCover = {albumid: idalbum, sequence: maxSequence};
+        data.append("cover",
+            new Blob([JSON.stringify(newCover)], {type: "application/json"}));
+        data.append("file", file);
+
+        var xmlobj = new XMLHttpRequest();
+        xmlobj.onload = function() {
+          if (xmlobj.readyState === 4) {
+            if (xmlobj.status === 403) {
+              window.location = "/login.html";
+            }
+            if (xmlobj.status === 200) {
+              covers = JSON.parse(xmlobj.responseText);
+              drawCovers();
+              resolve(covers);
+            }
+          }
+        };
+        xmlobj.open("PUT", "cover");
+        xmlobj.setRequestHeader("Authorization", getCookie("token"));
+        xmlobj.send(data);
       });
-
-      var data = new FormData();
-
-      maxSequence = maxSequence + 1;
-      var newCover = {albumid: idalbum, sequence: maxSequence};
-      data.append("cover",
-          new Blob([JSON.stringify(newCover)], {type: "application/json"}));
-      data.append("file", file);
-
-      var xmlobj = new XMLHttpRequest();
-      xmlobj.onload = function() {
-        if (xmlobj.readyState === 4) {
-          if (xmlobj.status === 403) {
-            window.location = "/login.html";
-          }
-          if (xmlobj.status === 200) {
-            covers = JSON.parse(xmlobj.responseText);
-            drawCovers();
-          }
-        }
-      };
-      xmlobj.open("PUT", "cover");
-      xmlobj.setRequestHeader("Authorization", getCookie("token"));
-      xmlobj.send(data);
     }
 
-    function removeCover(idcover) {
-      var xmlobj = new XMLHttpRequest();
-      xmlobj.onload = function() {
-        if (xmlobj.readyState === 4) {
-          if (xmlobj.status === 403) {
-            window.location = "/login.html";
+    async function removeCover(idcover) {
+      return new Promise(function (resolve, reject) {
+        var xmlobj = new XMLHttpRequest();
+        xmlobj.onload = function() {
+          if (xmlobj.readyState === 4) {
+            if (xmlobj.status === 403) {
+              window.location = "/login.html";
+            }
+            if (xmlobj.status === 200) {
+              covers = JSON.parse(xmlobj.responseText);
+              drawCovers();
+              resolve(covers);
+            }
           }
-          if (xmlobj.status === 200) {
-            covers = JSON.parse(xmlobj.responseText);
-            drawCovers();
-          }
-        }
-      };
-      xmlobj.open("DELETE", "cover/" + idcover);
-      xmlobj.setRequestHeader("Authorization", getCookie("token"));
-      xmlobj.send();
+        };
+        xmlobj.open("DELETE", "cover/" + idcover);
+        xmlobj.setRequestHeader("Authorization", getCookie("token"));
+        xmlobj.send();
+      });
     }
 
-    function upCover(idcover, sequence) {
+    async function upCover(idcover, sequence) {
       if (sequence == 1)
-        return;
+        return Promise.resolve(covers);
 
-      var data = new FormData();
+      return new Promise(function (resolve, reject) {
+        var data = new FormData();
 
-      var newCover = {idcover: idcover, albumid: idalbum, sequence: sequence - 1};
-      data.append("cover",
-          new Blob([JSON.stringify(newCover)], {type: "application/json"}));
+        var newCover = {idcover: idcover, albumid: idalbum, sequence: sequence - 1};
+        data.append("cover",
+            new Blob([JSON.stringify(newCover)], {type: "application/json"}));
 
-      var xmlobj = new XMLHttpRequest();
-      xmlobj.onload = function() {
-        if (xmlobj.readyState === 4) {
-          if (xmlobj.status === 403) {
-            window.location = "/login.html";
+        var xmlobj = new XMLHttpRequest();
+        xmlobj.onload = function() {
+          if (xmlobj.readyState === 4) {
+            if (xmlobj.status === 403) {
+              window.location = "/login.html";
+            }
+            if (xmlobj.status === 200) {
+              covers = JSON.parse(xmlobj.responseText);
+              drawCovers();
+              resove(covers);
+            }
           }
-          if (xmlobj.status === 200) {
-            covers = JSON.parse(xmlobj.responseText);
-            drawCovers();
-          }
-        }
-      };
-      xmlobj.open("POST", "cover/" + idcover);
-      xmlobj.setRequestHeader("Authorization", getCookie("token"));
-      xmlobj.send(data);
+        };
+        xmlobj.open("POST", "cover/" + idcover);
+        xmlobj.setRequestHeader("Authorization", getCookie("token"));
+        xmlobj.send(data);
+      });
     }
 
     function downCover(idcover, sequence) {
-      var data = new FormData();
+      return new Promise(function (resolve, reject) {
+        var data = new FormData();
 
-      var newCover = {idcover: idcover, albumid: idalbum, sequence: sequence + 2};
-      data.append("cover",
-          new Blob([JSON.stringify(newCover)], {type: "application/json"}));
+        var newCover = {idcover: idcover, albumid: idalbum, sequence: sequence + 2};
+        data.append("cover",
+            new Blob([JSON.stringify(newCover)], {type: "application/json"}));
 
-      var xmlobj = new XMLHttpRequest();
-      xmlobj.onload = function() {
-        if (xmlobj.readyState === 4) {
-          if (xmlobj.status === 403) {
-            window.location = "/login.html";
+        var xmlobj = new XMLHttpRequest();
+        xmlobj.onload = function() {
+          if (xmlobj.readyState === 4) {
+            if (xmlobj.status === 403) {
+              window.location = "/login.html";
+            }
+            if (xmlobj.status === 200) {
+              covers = JSON.parse(xmlobj.responseText);
+              drawCovers();
+              resove(covers);
+            }
           }
-          if (xmlobj.status === 200) {
-            covers = JSON.parse(xmlobj.responseText);
-            drawCovers();
-          }
-        }
-      };
-      xmlobj.open("POST", "cover/" + idcover);
-      xmlobj.setRequestHeader("Authorization", getCookie("token"));
-      xmlobj.send(data);
+        };
+        xmlobj.open("POST", "cover/" + idcover);
+        xmlobj.setRequestHeader("Authorization", getCookie("token"));
+        xmlobj.send(data);
+      });
     }
 
     function drawCovers()
@@ -392,8 +411,8 @@
         var img = document.createElement("img");
         img.style = "height: 50px; background-color: white;";
         img.src = "img/remove.png";
-        img.addEventListener("click", function() {
-          removeCover(cover.idcover);
+        img.addEventListener("click", async function() {
+          await removeCover(cover.idcover);
         });
         div_remove.appendChild(img);
 
@@ -402,8 +421,8 @@
         var img = document.createElement("img");
         img.style = "height: 50px; background-color: white;";
         img.src = "img/left.png";
-        img.addEventListener("click", function() {
-          upCover(cover.idcover, cover.sequence);
+        img.addEventListener("click", async function() {
+          await upCover(cover.idcover, cover.sequence);
         });
         div_up.appendChild(img);
 
@@ -412,8 +431,8 @@
         var img = document.createElement("img");
         img.style = "height: 50px; background-color: white;";
         img.src = "img/right.png";
-        img.addEventListener("click", function() {
-          downCover(cover.idcover, cover.sequence);
+        img.addEventListener("click", async function() {
+          await downCover(cover.idcover, cover.sequence);
         });
         div_down.appendChild(img);
 
@@ -524,15 +543,6 @@
         xmlobj.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
         xmlobj.send(JSON.stringify(track));
       });
-    }
-
-    async function updateTrackfromNAS(data) {
-      for(var track of tracks) {
-        await removeTrack(track.idtrack);
-      }
-      for(var track of data) {
-        await addTrack(track);
-      }
     }
 
     function newTrack() {
@@ -709,11 +719,9 @@
       xmlobj.send();
     }
 
-    function submit() {
-      document.getElementById("submit").disabled = true;
-      var params = getSearchParameters();
-      var idalbum = params["idalbum"] ? params["idalbum"] : "1";
-      var dataUrl = params["idalbum"] ? "album/" + idalbum : "album/1";
+    function editAlbum() {
+      document.getElementById("editAlbum").disabled = true;
+      var dataUrl = "album/" + idalbum;
       var album = {
         idalbum: idalbum,
         title: document.getElementById("title").value != "" ? document.getElementById("title").value : null,
@@ -740,18 +748,45 @@
         contentType: "application/json",
         headers: {"Authorization": getCookie("token")},
         success: function () {
-          document.getElementById("submit").disabled = false;
+          document.getElementById("editAlbum").disabled = false;
 
           drawMoviePoster(document.getElementById("movieid").value);
           drawDiscogsCover(document.getElementById("discogsID").value);
         },
         error: function (error) {
-          document.getElementById("submit").disabled = false;
-          document.getElementById("submit").innerText = "ERROR";
+          document.getElementById("editAlbum").disabled = false;
+          document.getElementById("editAlbum").innerText = "ERROR";
           if (error.status == 403)
             document.location = "/login.html";
         }
       });
+    }
+
+    function removeAlbum() {
+      if (confirm("是否删除整个专辑？")) {
+        var dataUrl = "album/" + idalbum;
+        $.ajax({
+          type: "DELETE",
+          url: dataUrl,
+          headers: {"Authorization": getCookie("token")},
+          success: function () {
+            document.location = "manage.html";
+          },
+          error: function (error) {
+            if (error.status == 403)
+              document.location = "/login.html";
+          }
+        });
+      }
+    }
+
+    async function updateTrackfromNAS(data) {
+      for(var track of tracks) {
+        await removeTrack(track.idtrack);
+      }
+      for(var track of data) {
+        await addTrack(track);
+      }
     }
 
     function syncNASCover() {
@@ -806,7 +841,7 @@
       });
     }
 
-    function nas() {
+    function syncNAS() {
       syncNASCover();
       syncNASCUE();
     }
@@ -820,8 +855,11 @@
         document.location = "/login.html";
 
       var params = getSearchParameters();
-      idalbum = params["idalbum"] ? params["idalbum"] : "1";
-      var dataUrl = params["idalbum"] ? "album/" + idalbum : "album/1";
+      if (params["idalbum"] == null)
+        document.location = "manage.html";
+
+      idalbum = params["idalbum"];
+      var dataUrl = "album/" + idalbum;
 
       $.get(dataUrl, function (data, status) {
         var text_title = document.getElementById("title");

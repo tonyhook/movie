@@ -342,7 +342,7 @@ public class CoverController {
         return new ResponseEntity<Set<Cover>>(album.getCovers(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/music/cover/{idcover}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/music/cover/{idcover}", method = RequestMethod.DELETE, produces = "application/json; charset=UTF-8")
     public @ResponseBody ResponseEntity<Set<Cover>> removeCover(@PathVariable("idcover") Integer idcover) {
         Coverimg coverimg = coverimgRepository.findById(idcover).orElse(null);
         if (coverimg != null) {
