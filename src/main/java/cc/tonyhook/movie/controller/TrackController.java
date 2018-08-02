@@ -84,7 +84,8 @@ public class TrackController {
         Integer movieid = album.getMovieid();
         Movie movie = movieRepository.findById(movieid).orElse(null);
         String companyFolder = getDefaultCompanyName(movie);
-        String movieFolder = movie.getReleasedate().toString().replace("-", ".") + "." + movie.getTitle();
+        String movieFolder = movie.getReleasedate().toString().replace("-", ".") + "."
+                + movie.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ");
         String albumFolder = album.getTitle();
         if ((album.getLabel() != null) && (album.getLabel().length() > 0)) {
             albumFolder = albumFolder + " (" + album.getLabel();
@@ -92,6 +93,7 @@ public class TrackController {
                 albumFolder = albumFolder + " " + album.getCat();
             albumFolder = albumFolder + ")";
         }
+        albumFolder = albumFolder.replace(":", "").replace("!", "").replace("?", "").replace("/", " ");
 
         ArrayList<Track> tracks = new ArrayList<Track>();
 
@@ -104,7 +106,8 @@ public class TrackController {
                         + companyFolder + "/Soundtrack/"
                         + movieFolder + "/"
                         + albumFolder + "/"
-                        + album.getTitle() + discName + ".cue";
+                        + album.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ")
+                        + discName + ".cue";
                 Response resp = Jsoup.connect(cueUrl).ignoreContentType(true).maxBodySize(0).execute();
 
                 if (resp.statusCode() == 200) {
@@ -149,7 +152,8 @@ public class TrackController {
                         + companyFolder + "/Soundtrack/"
                         + movieFolder + "/"
                         + albumFolder + "/"
-                        + album.getTitle() + discName + ".log";
+                        + album.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ")
+                        + discName + ".log";
                 resp = Jsoup.connect(logUrl).ignoreContentType(true).maxBodySize(0).execute();
 
                 if (resp.statusCode() == 200) {

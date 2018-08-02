@@ -147,7 +147,8 @@ public class CoverController {
         Integer movieid = album.getMovieid();
         Movie movie = movieRepository.findById(movieid).orElse(null);
         String companyFolder = getDefaultCompanyName(movie);
-        String movieFolder = movie.getReleasedate().toString().replace("-", ".") + "." + movie.getTitle();
+        String movieFolder = movie.getReleasedate().toString().replace("-", ".") + "."
+                + movie.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ");
         String albumFolder = album.getTitle();
         if ((album.getLabel() != null) && (album.getLabel().length() > 0)) {
             albumFolder = albumFolder + " (" + album.getLabel();
@@ -155,6 +156,7 @@ public class CoverController {
                 albumFolder = albumFolder + " " + album.getCat();
             albumFolder = albumFolder + ")";
         }
+        albumFolder = albumFolder.replace(":", "").replace("!", "").replace("?", "").replace("/", " ");
 
         try {
             String coverUrl = "https://" + NAS_ADDRESS + ":" + NAS_PORT
@@ -162,7 +164,8 @@ public class CoverController {
                     + companyFolder + "/Soundtrack/"
                     + movieFolder + "/"
                     + albumFolder + "/"
-                    + album.getTitle() + ".jpg";
+                    + album.getTitle().replace(":", "").replace("!", "").replace("?", "").replace("/", " ")
+                    + ".jpg";
             Response resp = Jsoup.connect(coverUrl).ignoreContentType(true).maxBodySize(0).execute();
 
             if (resp.statusCode() == 200) {
